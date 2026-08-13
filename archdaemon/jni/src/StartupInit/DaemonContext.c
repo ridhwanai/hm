@@ -49,6 +49,9 @@ void init_daemon_context(DaemonContext* ctx) {
     ctx->pid_retries = 0;
     ctx->screen_off_timer = 0;
     ctx->cur_mode = PERFCOMMON;
-    strcpy(ctx->prev_ai_state, "0");
+    /* RN9 fork: default dynamic profile (auto mode) ON. Kalau file
+     * API/current_modes hilang saat boot, profil performa tidak ikut mati.
+     * Pilihan user tetap dihormati: kalau file berisi "0" tetap dibaca "0". */
+    strcpy(ctx->prev_ai_state, "1");
     ctx->java_lock_path = "/data/adb/.config/AZenith/java.lock";
 }

@@ -206,15 +206,6 @@ fun SettingsScreen(navController: NavController) {
                                         leadingContent = { LeadingIcon(icon = Icons.Filled.Palette) },
                                         trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) }
                                     )
-                                },
-                                {
-                                    ExpressiveListItem(
-                                        onClick = { navController.navigate("rn9tweaks") },
-                                        headlineContent = { Text("Optimasi RN9") },
-                                        supportingContent = { Text("Hibernasi lanjutan, ZRAM + swappiness, fstrim terjadwal") },
-                                        leadingContent = { LeadingIcon(icon = Icons.Filled.Tune) },
-                                        trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) }
-                                    )
                                 }
                             )
                         )

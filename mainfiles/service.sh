@@ -90,6 +90,21 @@ if [ -f "$MODDIR/azenith-fstrim.sh" ]; then
     nohup sh "$MODDIR/azenith-fstrim.sh" watch >/dev/null 2>&1 &
 fi
 
+# RN9 fork: pastikan dynamic profile (auto mode) tidak mati gara-gara file
+# current_modes hilang. Kalau user sengaja mematikan (AIenabled=0) hormati
+# pilihannya; selain itu default ON (1) supaya profil performa tetap jalan.
+mkdir -p "$MODULE_CONFIG/API"
+if [ ! -s "$MODULE_CONFIG/API/current_modes" ]; then
+    AISTATE=$(getprop persist.sys.azenithconf.AIenabled)
+    case "$AISTATE" in
+        0) echo 0 > "$MODULE_CONFIG/API/current_modes" ;;
+        *)
+            echo 1 > "$MODULE_CONFIG/API/current_modes"
+            [ -z "$AISTATE" ] && setprop persist.sys.azenithconf.AIenabled 1
+            ;;
+    esac
+fi
+
 # RN9 fork: terapkan renderer tersimpan saat boot (debug.hwui.* reset tiap reboot).
 # Default modul = skiaglthreaded (SkiaGL Multi-threaded).
 RENDERER=$(getprop persist.sys.azenithconf.renderer)
