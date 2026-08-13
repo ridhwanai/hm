@@ -346,6 +346,7 @@ fun MainScreen(fromTileType: String? = null) {
                     composable("home") { HomeScreen() }
                     composable("performance") { PerformanceAppsScreen(navController) }
                     composable("hibernate") { HibernationScreen(navController) }
+                    composable("rn9tweaks") { Rn9TweakScreen(navController) }
                     composable("tweaks") { TweakScreen(navController) }
                     composable("settings") { SettingsScreen(navController) }
                     composable("color_palette") { ColorPaletteScreen(navController) }

@@ -89,4 +89,13 @@ Atau cukup jalankan GitHub Actions workflow untuk membangun APK + ZIP flashable 
 ### 5. Renderer default SkiaGL Multi-threaded
 - Default install kini `skiaglthreaded` (`customize.sh`). Karena `debug.hwui.*` reset tiap reboot, `service.sh` menerapkan ulang renderer tersimpan saat boot via `sys.azenith-utilityconf setrender`.
 
-> Catatan menu (APK): logika di atas dikendalikan lewat file config sehingga langsung berfungsi setelah flash. Untuk toggle yang tampil di UI manager (Compose/Kotlin) perlu penambahan di `manager/` + build ulang APK; backend & default sudah disiapkan agar tinggal disambungkan.
+> Catatan menu (APK): logika di atas dikendalikan lewat file config sehingga langsung berfungsi setelah flash.
+
+### 6. UI menu di aplikasi manager (Compose/Kotlin)
+- Screen baru `manager/.../ui/mainscreens/Rn9TweakScreen.kt` (route `rn9tweaks`) berisi toggle & input untuk:
+  - Hibernasi lanjutan: mode default full/restrict, skip saat ngecas, skip saat audio.
+  - ZRAM + swappiness: on/off, ukuran ZRAM (MB), swappiness, algoritma; tombol "Terapkan sekarang".
+  - fstrim: on/off, tunda setelah boot, jeda antar trim; tombol "Trim sekarang".
+- Route didaftarkan di `MainActivity.kt`; entri "Optimasi RN9" ditambahkan di `SettingsScreen.kt`.
+- Semua kontrol menulis ke file config yang sama (`eco/`, `mem/`, `maint/`) via `Shell.cmd`, jadi konsisten dengan skrip modul.
+- **Perlu build ulang APK** (jalankan workflow GitHub Actions) agar menu muncul. Diverifikasi statis (import tersedia, `material-icons-extended` ada, kurung seimbang); kompilasi final tetap lewat workflow karena SDK/Gradle Android tidak dijalankan saat penyuntingan.
