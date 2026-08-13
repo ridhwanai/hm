@@ -1,0 +1,31 @@
+# Build output
+manager/build/
+manager/app/build/
+manager/.gradle/
+manager/local.properties
+manager/.idea/
+manager/captures/
+*.iml
+
+# NDK / native build
+archdaemon/libs/
+archdaemon/obj/
+archdaemon/jni/obj/
+
+# Rust
+target/
+binprofiles/target/
+binutils/target/
+thermalcore/target/
+preloadbin/target/
+
+# Output paket
+out/
+*.zip
+
+# Sampah OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.vscode/
