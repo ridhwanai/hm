@@ -167,6 +167,24 @@ int main_daemon(void) {
                     ctx.has_applied_renderer = false;
                     ctx.need_profile_checkup = true;
                 }
+            } else if (gamestart && real_screen_state && strlen(current_system_cache.focused_app) > 0 &&
+                       strcmp(current_system_cache.focused_app, gamestart) != 0) {
+                /* RN9 fix: fokus sudah pindah ke aplikasi non-performa.
+                 * Dulu gamestart TIDAK pernah dibersihkan di sini, jadi daemon
+                 * tetap menahan Performance Profile sampai proses game benar-
+                 * benar mati (bisa puluhan detik / menit karena cached process).
+                 * Sekarang langsung lepas supaya balik ke Balanced instan. */
+                log_zenith(LOG_INFO, "Focus left %s, returning to Balanced Profile", active_app_name ? active_app_name : gamestart);
+                free(gamestart);
+                gamestart = NULL;
+                if (active_app_name) {
+                    free(active_app_name);
+                    active_app_name = NULL;
+                }
+                game_pid_count = 0;
+                ctx.pid_retries = 0;
+                ctx.has_applied_renderer = false;
+                ctx.grace_period_active = false;
             } else if (ctx.cur_mode != BALANCED_PROFILE && ctx.cur_mode != ECO_MODE) {
                 ctx.need_profile_checkup = false;
             }
@@ -212,12 +230,25 @@ int main_daemon(void) {
             if (game_pid_count == 0) [[clang::unlikely]] {
                 if (strcmp(current_system_cache.focused_app, gamestart) == 0) {
                     game_pid_count = get_pids_of(gamestart, game_pids, MAX_GAME_PIDS);
+                    /* RN9 fix: background_apps (daftar recent task) sering belum
+                     * ter-update tepat saat aplikasi baru dibuka, sehingga profil
+                     * performa tertunda beberapa detik. PID aplikasi fokus sudah
+                     * tersedia di app_status, pakai itu sebagai jalur cepat. */
+                    if (game_pid_count == 0 && current_system_cache.focused_pid > 0) {
+                        game_pids[0] = current_system_cache.focused_pid;
+                        game_pid_count = 1;
+                        log_zenith(LOG_INFO, "Using focused PID %d from app_status (fast path)", current_system_cache.focused_pid);
+                    }
                 }
                 if (game_pid_count == 0) {
                     if (ctx.pid_retries < 5) {
                         ctx.pid_retries++;
                         log_zenith(LOG_WARN, "Waiting for %s to spawn (Retry %d/5)...", active_app_name ? active_app_name : gamestart,
                                    ctx.pid_retries);
+                        /* RN9 fix: dulu 5 retry terbakar habis dalam hitungan
+                         * mikrodetik (poll_timeout 0), app langsung di-drop dan
+                         * baru pulih di event file berikutnya. Beri jeda kecil. */
+                        usleep(120000);
                         need_loop = true;
                         continue;
                     } else {

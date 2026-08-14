@@ -37,8 +37,12 @@ import org.lsposed.hiddenapibypass.HiddenApiBypass
 
 @SuppressLint("StaticFieldLeak", "DiscouragedPrivateApi", "PrivateApi")
 object AppMonitor {
-    private const val POLL_INTERVAL_MS = 500L
+    // RN9 fix: 500ms poll bikin pergantian aplikasi baru kebaca sampai ~1s
+    // (poll + retry PID). Turunkan supaya profil performa aktif/keluar instan.
+    private const val POLL_INTERVAL_MS = 150L
     private const val STATUS_WRITE_INTERVAL_MS = 2_000L
+    // Daftar background_apps mahal (getRecentTasks), jangan ikut 150ms.
+    private const val BACKGROUND_WRITE_INTERVAL_MS = 750L
     private const val PID_RETRY_INTERVAL_MS = 50L
     private const val UNKNOWN_APP = "unknown 0 0"
     private const val NONE_APP = "none 0 0"
@@ -81,6 +85,12 @@ object AppMonitor {
     private var lastBackgroundApps = ""
 
     private var lastStatusWriteAt = 0L
+    private var lastBackgroundWriteAt = 0L
+
+    // Kunci status tanpa metrik baterai yang selalu berubah, dipakai untuk
+    // mendeteksi perubahan nyata (fokus app / layar / saver / zen).
+    @Volatile
+    private var lastStableKey = ""
 
     private var outputPath = ""
     private var backgroundOutputPath = ""
@@ -156,8 +166,12 @@ object AppMonitor {
     private fun runMonitorLoop() {
         while (!Thread.currentThread().isInterrupted) {
             try {
-                writeStatus()
-                writeBackgroundApps()
+                val stateChanged = writeStatus()
+                val now = System.currentTimeMillis()
+                if (stateChanged || now - lastBackgroundWriteAt >= BACKGROUND_WRITE_INTERVAL_MS) {
+                    writeBackgroundApps()
+                    lastBackgroundWriteAt = now
+                }
                 Thread.sleep(POLL_INTERVAL_MS)
             } catch (_: InterruptedException) {
                 Thread.currentThread().interrupt()
@@ -168,11 +182,18 @@ object AppMonitor {
         }
     }
 
-    private fun writeStatus() {
-        val focusedApp = waitForValidFocusedApp() ?: return
+    /** @return true kalau ada perubahan status nyata (fokus/layar/saver/zen). */
+    private fun writeStatus(): Boolean {
+        val focusedApp = waitForValidFocusedApp() ?: return false
         val currentStatus = buildStatus(focusedApp)
         val now = System.currentTimeMillis()
-        if (currentStatus == lastStatus && now - lastStatusWriteAt < STATUS_WRITE_INTERVAL_MS) return
+        // Metrik baterai berubah tiap sampel, jadi tidak dipakai sebagai penanda
+        // perubahan; kalau dipakai, daemon kebanjiran event inotify tiap poll.
+        val stableKey = currentStatus.lineSequence()
+            .filterNot { it.startsWith("battery_") }
+            .joinToString("\n")
+        val stateChanged = stableKey != lastStableKey
+        if (!stateChanged && now - lastStatusWriteAt < STATUS_WRITE_INTERVAL_MS) return false
 
         try {
             val file = File(outputPath)
@@ -188,10 +209,12 @@ object AppMonitor {
             tmpFile.renameTo(file)
             
             lastStatus = currentStatus
+            lastStableKey = stableKey
             lastStatusWriteAt = now
         } catch (e: Exception) {
             e.printStackTrace()
         }
+        return stateChanged
     }
 
     /**

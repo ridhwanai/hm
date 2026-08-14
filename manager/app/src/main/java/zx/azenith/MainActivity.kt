@@ -350,6 +350,7 @@ fun MainScreen(fromTileType: String? = null) {
                     composable("settings") { SettingsScreen(navController) }
                     composable("color_palette") { ColorPaletteScreen(navController) }
                     composable("preferenced") { PreferenceTweakScreen(navController) }
+                    composable("advanced_tweaks") { AdvancedTweakScreen(navController) }
                     composable("aboutscreen") { AboutScreen(navController) }
                 }
                 

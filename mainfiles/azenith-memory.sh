@@ -126,6 +126,15 @@ apply_zram() {
 }
 
 case "$1" in
+apply-now)
+	# Dipanggil dari menu Tweak > Pengaturan Lanjutan (tanpa tunggu boot).
+	enabled || {
+		log "apply-now dilewati: mem tuning dimatikan"
+		exit 0
+	}
+	apply_zram
+	apply_swappiness
+	;;
 apply)
 	enabled || {
 		log "apply dilewati: mem tuning dimatikan"
@@ -149,7 +158,7 @@ status)
 	fi
 	;;
 *)
-	echo "usage: $0 apply|status" >&2
+	echo "usage: $0 apply|apply-now|status" >&2
 	exit 1
 	;;
 esac

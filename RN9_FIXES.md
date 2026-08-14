@@ -90,3 +90,55 @@ Atau cukup jalankan GitHub Actions workflow untuk membangun APK + ZIP flashable 
 - Default install kini `skiaglthreaded` (`customize.sh`). Karena `debug.hwui.*` reset tiap reboot, `service.sh` menerapkan ulang renderer tersimpan saat boot via `sys.azenith-utilityconf setrender`.
 
 > Catatan menu (APK): logika di atas dikendalikan lewat file config sehingga langsung berfungsi setelah flash. Untuk toggle yang tampil di UI manager (Compose/Kotlin) perlu penambahan di `manager/` + build ulang APK; backend & default sudah disiapkan agar tinggal disambungkan.
+
+---
+
+## Patch RN9 v2 - Latensi profil + UI Pengaturan Lanjutan
+
+### 1. Profil Performa lambat aktif saat aplikasi dibuka
+Penyebab (archdaemon/jni/src/System/System.c):
+- PID aplikasi hanya dicari lewat get_pids_of() yang membaca file background_apps.
+  File itu diisi manager dari getRecentTasks(30), dan aplikasi yang BARU dibuka
+  sering belum masuk daftar recent, jadi PID = 0.
+- Saat PID = 0, daemon retry 5x tapi need_loop = true membuat poll_timeout = 0,
+  sehingga 5 retry habis dalam hitungan mikrodetik. Aplikasi lalu di-drop dan
+  baru dicoba lagi pada event inotify berikutnya (0.5-2 detik kemudian).
+
+Perbaikan:
+- Fast path: pakai current_system_cache.focused_pid dari app_status bila
+  get_pids_of() kosong dan aplikasi fokus sama dengan aplikasi target.
+- Retry kini punya jeda nyata usleep(120000), bukan terbakar instan.
+
+### 2. Lambat kembali ke profil default setelah aplikasi ditutup
+Penyebab: di blok need_profile_checkup, saat get_gamestart() mengembalikan NULL,
+daemon hanya menyetel need_profile_checkup = false tanpa membersihkan gamestart.
+Karena gamestart masih terisi, cabang di bawahnya terus masuk ke jalur
+Performance. Profil baru turun setelah handle_background_apps_event() melihat PID
+hilang, yaitu setelah Android benar-benar mematikan cached process.
+
+Perbaikan: bila fokus sudah pindah ke aplikasi lain, gamestart, active_app_name,
+game_pid_count, pid_retries, has_applied_renderer, dan grace_period_active
+langsung direset sehingga Balanced diterapkan seketika.
+
+### 3. Deteksi pergantian aplikasi (manager)
+AppMonitor.kt:
+- POLL_INTERVAL_MS 500 -> 150 ms.
+- writeBackgroundApps() (mahal, getRecentTasks) dipisah ke cadence 750 ms atau
+  saat status berubah, jadi poll cepat tidak menambah beban.
+- Deteksi perubahan status kini mengabaikan baris battery_* yang selalu berubah;
+  tulis instan hanya saat fokus/layar/saver/zen berubah, sisanya tetap di-throttle
+  2 detik supaya daemon tidak kebanjiran event inotify.
+
+### 4. Menu ZRAM / hibernasi lanjutan yang belum ada
+Backend (azenith-memory.sh, azenith-hibernate.sh, azenith-fstrim.sh) sudah ada
+sejak patch RN9 pertama tetapi murni config-file, tanpa UI. Sekarang:
+- Screen baru manager/.../ui/subscreens/AdvancedTweakScreen.kt (route
+  advanced_tweaks, terdaftar di MainActivity.kt).
+- Entri "Pengaturan Lanjutan" ditaruh di dalam tab Tweak (TweakScreen.kt), di
+  atas section Add-ons.
+- Isi menu: aktif/nonaktif tuning memori, ukuran ZRAM (MB), swappiness,
+  algoritma kompresi, tombol Terapkan sekarang + status; mode hibernasi default
+  (full / restrict), skip saat charging, skip saat audio aktif, shortcut ke
+  daftar aplikasi hibernasi; fstrim terjadwal + selang + jalankan sekarang.
+- azenith-memory.sh menerima perintah baru apply-now (tanpa menunggu
+  sys.boot_completed + sleep 20s) supaya tombol di UI langsung bekerja.

@@ -368,6 +368,23 @@ fun TweakScreen(
                 
 
                 
+                item { TweaksSectionTitle("Pengaturan Lanjutan") }
+                item {
+                    ExpressiveList(
+                        content = listOf(
+                            {
+                                ExpressiveListItem(
+                                    leadingContent = { LeadingIcon(icon = Icons.Outlined.Memory) },
+                                    onClick = { navController.navigate("advanced_tweaks") },
+                                    headlineContent = { Text("ZRAM, Hibernasi Lanjutan & fstrim") },
+                                    supportingContent = { Text("Ukuran ZRAM, swappiness, mode hibernasi, dan trim penyimpanan") },
+                                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) }
+                                )
+                            }
+                        )
+                    )
+                }
+
                 item { TweaksSectionTitle(stringResource(R.string.section_addons)) }
                 item {
                     ExpressiveList(
