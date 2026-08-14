@@ -2,9 +2,14 @@
  * AZenith RN9 Edition - Pengaturan Lanjutan (Tweak > Lanjutan).
  *
  * Menu ini menyambungkan backend yang sudah ada tapi belum punya UI:
- *   - azenith-memory.sh  : ZRAM + swappiness  (config: .config/AZenith/mem/*)
- *   - azenith-hibernate.sh: mode hibernasi + kondisi tunda (config: eco/*)
- *   - azenith-fstrim.sh  : fstrim terjadwal    (config: maint/*)
+ *   - azenith-memory.sh   : ZRAM + swappiness (config dir: mem)
+ *   - azenith-hibernate.sh: mode hibernasi + kondisi tunda (config dir: eco)
+ *   - azenith-fstrim.sh   : fstrim terjadwal (config dir: maint)
+ *
+ * CATATAN: jangan pakai pola bintang-garis-miring di dalam komentar blok
+ * Kotlin. Kotlin mengizinkan komentar blok bersarang, jadi teks seperti
+ * "mem" diikuti garis-miring-bintang akan membuka komentar baru dan bikin
+ * error "Unclosed comment".
  *
  * Licensed under the Apache License, Version 2.0.
  */
@@ -12,7 +17,9 @@
 package zx.azenith.ui.subscreens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -54,6 +61,7 @@ private fun writeCfg(dir: String, path: String, value: String) {
 @Composable
 fun AdvancedTweakScreen(navController: NavController) {
     val scope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
 
     var loaded by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
@@ -120,7 +128,7 @@ fun AdvancedTweakScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 16.dp)
-                .verticalScrollCompat(),
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Spacer(Modifier.height(4.dp))
@@ -458,12 +466,3 @@ private fun RowSwitch(
         Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
-
-/** Scroll vertikal sederhana tanpa menambah import di banyak tempat. */
-@Composable
-private fun Modifier.verticalScrollCompat(): Modifier =
-    this.then(
-        androidx.compose.foundation.verticalScroll(
-            androidx.compose.foundation.rememberScrollState()
-        )
-    )
