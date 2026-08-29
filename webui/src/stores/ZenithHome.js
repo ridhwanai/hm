@@ -16,14 +16,14 @@ export const useZenithHomeStore = defineStore('zenithHome', () => {
     soc: 'Detecting...',
     kernel: '...',
     sdk: '...',
-    battery: 85,
-    temp: 34,
-    isCharging: false,
   })
 
-  let monitorTimer = null
+  const isInitialized = ref(false)
+  let monitorInterval = null
 
   async function initialize() {
+    if (isInitialized.value) return
+
     await Promise.all([
       fetchDaemonStatus(),
       fetchProfile(),
@@ -31,7 +31,9 @@ export const useZenithHomeStore = defineStore('zenithHome', () => {
       fetchSpecs(),
       fetchModuleVersion(),
     ])
+
     startMonitoring()
+    isInitialized.value = true
   }
 
   async function fetchDaemonStatus() {
@@ -90,8 +92,6 @@ export const useZenithHomeStore = defineStore('zenithHome', () => {
     if (profile === 'eco') code = '3'
 
     await KernelSU.writeFile(`${CONFIG_PATH}/API/current_profile`, code)
-    
-    // Call utility to apply profile immediately
     await KernelSU.exec(`[ -x ${MOD_PATH}/system/bin/sys.azenith-profilesettings ] && ${MOD_PATH}/system/bin/sys.azenith-profilesettings setprofile ${code}`)
     KernelSU.toast(`Profil beralih ke ${profile.toUpperCase()}`)
   }
@@ -105,28 +105,10 @@ export const useZenithHomeStore = defineStore('zenithHome', () => {
         KernelSU.exec('getprop ro.build.version.sdk'),
       ])
 
-      const socRaw = socRes.stdout.trim() || hwRes.stdout.trim() || 'Generic ARM64'
+      const socRaw = socRes.stdout.trim() || hwRes.stdout.trim() || 'ARM64'
       deviceSpecs.value.soc = socRaw.toUpperCase()
-      deviceSpecs.value.kernel = kernRes.stdout.trim() || 'Linux Kernel'
+      deviceSpecs.value.kernel = kernRes.stdout.trim() || 'Linux'
       deviceSpecs.value.sdk = `Android SDK ${sdkRes.stdout.trim() || '30+'}`
-
-      // Battery
-      const { stdout: batOut } = await KernelSU.exec('cat /sys/class/power_supply/battery/capacity 2>/dev/null || dumpsys battery | grep level')
-      const batVal = parseInt(batOut.replace(/[^0-9]/g, ''))
-      if (!isNaN(batVal) && batVal > 0) {
-        deviceSpecs.value.battery = batVal
-      }
-
-      // Temp
-      const { stdout: tempOut } = await KernelSU.exec('cat /sys/class/power_supply/battery/temp 2>/dev/null')
-      const tempVal = parseInt(tempOut.trim())
-      if (!isNaN(tempVal)) {
-        deviceSpecs.value.temp = tempVal > 100 ? (tempVal / 10).toFixed(0) : tempVal
-      }
-
-      // Charging status
-      const { stdout: statusOut } = await KernelSU.exec('cat /sys/class/power_supply/battery/status 2>/dev/null')
-      deviceSpecs.value.isCharging = statusOut.toLowerCase().includes('charging')
     } catch (e) {
       console.warn('Failed to fetch specs:', e)
     }
@@ -146,16 +128,16 @@ export const useZenithHomeStore = defineStore('zenithHome', () => {
 
   function startMonitoring() {
     stopMonitoring()
-    monitorTimer = setInterval(() => {
-      fetchDaemonStatus()
+    // Lightweight file polling every 3 seconds
+    monitorInterval = setInterval(() => {
       fetchProfile()
-    }, 2000)
+    }, 3000)
   }
 
   function stopMonitoring() {
-    if (monitorTimer) {
-      clearInterval(monitorTimer)
-      monitorTimer = null
+    if (monitorInterval) {
+      clearInterval(monitorInterval)
+      monitorInterval = null
     }
   }
 

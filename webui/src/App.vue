@@ -1,11 +1,10 @@
 <template>
-  <div class="min-h-screen bg-[#090d16] text-slate-100 font-['Plus_Jakarta_Sans',sans-serif] flex flex-col justify-between">
-    <!-- Main Content Container -->
-    <main class="w-full max-w-md mx-auto px-4 pt-4 pb-20">
-      <DashboardView v-if="activeTab === 'dashboard'" />
+  <div class="h-screen flex flex-col justify-between bg-[#111318] text-[#e2e2e9] overflow-hidden">
+    <!-- Main Content View -->
+    <main class="flex-1 overflow-hidden relative">
+      <DashboardView v-if="activeTab === 'home'" />
       <GamesView v-else-if="activeTab === 'games'" />
-      <TweaksView v-else-if="activeTab === 'tweaks'" />
-      <LogsSettingsView v-else-if="activeTab === 'logs'" />
+      <TweaksView v-else-if="activeTab === 'settings'" />
     </main>
 
     <!-- Bottom Navigation Bar -->
@@ -19,7 +18,6 @@ import Navbar from '@/components/Navbar.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import GamesView from '@/views/GamesView.vue'
 import TweaksView from '@/views/TweaksView.vue'
-import LogsSettingsView from '@/views/LogsSettingsView.vue'
 
-const activeTab = ref('dashboard')
+const activeTab = ref('home')
 </script>

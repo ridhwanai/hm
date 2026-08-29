@@ -1,384 +1,340 @@
 <template>
-  <div class="space-y-4 pb-24 animate-fade-in">
+  <div class="h-full flex flex-col overflow-hidden">
     <!-- Header -->
-    <div>
-      <h1 class="text-xl font-extrabold text-white flex items-center gap-2">
-        <SlidersHorizontal class="w-5 h-5 text-indigo-400" />
-        {{ t('tweaks.title') }}
-      </h1>
-      <p class="text-xs text-slate-400 mt-0.5">{{ t('tweaks.subtitle') }}</p>
+    <div class="sticky top-0 z-10 bg-[#111318] px-4 py-3 border-b border-white/5 flex items-center justify-between">
+      <h1 class="text-base font-bold text-[#e2e2e9]">{{ t('tweaks.title') }}</h1>
+      <span class="text-[10px] text-[#c4c6d0]">Konfigurasi Sistem</span>
     </div>
 
-    <!-- 1. Memory & ZRAM Tuning Card -->
-    <div class="glass-card rounded-2xl p-4 border border-white/10 space-y-4">
-      <div class="flex items-start justify-between">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-            <MemoryStick class="w-5 h-5" />
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-white">{{ t('tweaks.memory.title') }}</h3>
-            <p class="text-[11px] text-slate-400 leading-tight">{{ t('tweaks.memory.desc') }}</p>
-          </div>
-        </div>
+    <!-- Scrollable Content -->
+    <div class="scrollbar-hidden pb-safe-nav flex-1 overflow-y-auto px-4 py-3 space-y-4">
+      <!-- Section 1: Memory Tuning -->
+      <div>
+        <h2 class="text-xs font-bold text-[#a8c7fa] uppercase tracking-wider px-1 mb-1.5">
+          {{ t('tweaks.memory.title') }}
+        </h2>
 
-        <button
-          @click="tweaksStore.memEnabled = !tweaksStore.memEnabled"
-          class="relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200"
-          :class="tweaksStore.memEnabled ? 'bg-indigo-600' : 'bg-slate-700'"
-        >
-          <span
-            class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white transition duration-200"
-            :class="tweaksStore.memEnabled ? 'translate-x-5' : 'translate-x-0'"
-          ></span>
-        </button>
-      </div>
-
-      <div v-if="tweaksStore.memEnabled" class="space-y-3.5 pt-2 border-t border-white/5 text-xs">
-        <!-- ZRAM Size -->
-        <div class="space-y-1.5">
-          <div class="flex justify-between font-medium">
-            <span class="text-slate-300">{{ t('tweaks.memory.zramSize') }}</span>
-            <span class="text-indigo-400 font-bold font-mono">{{ tweaksStore.zramSizeMB }} MB</span>
-          </div>
-          <input
-            v-model.number="tweaksStore.zramSizeMB"
-            type="range"
-            min="512"
-            max="4096"
-            step="256"
-            class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer"
-          />
-          <div class="flex justify-between text-[10px] text-slate-500 font-mono">
-            <span>512 MB</span>
-            <span>2048 MB (Default)</span>
-            <span>4096 MB</span>
-          </div>
-        </div>
-
-        <!-- Swappiness -->
-        <div class="space-y-1.5">
-          <div class="flex justify-between font-medium">
-            <span class="text-slate-300">{{ t('tweaks.memory.swappiness') }}</span>
-            <span class="text-indigo-400 font-bold font-mono">{{ tweaksStore.swappiness }}</span>
-          </div>
-          <input
-            v-model.number="tweaksStore.swappiness"
-            type="range"
-            min="0"
-            max="200"
-            step="10"
-            class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer"
-          />
-          <p class="text-[10px] text-slate-400 leading-tight">{{ t('tweaks.memory.swappinessDesc') }}</p>
-        </div>
-
-        <!-- Algo Selector -->
-        <div class="space-y-1.5">
-          <label class="text-slate-300 font-medium block">{{ t('tweaks.memory.algo') }}</label>
-          <div class="grid grid-cols-4 gap-1.5">
-            <button
-              v-for="algo in ['lz4', 'zstd', 'lzo', 'zram']"
-              :key="algo"
-              @click="tweaksStore.memAlgo = algo"
-              class="py-1.5 rounded-xl text-xs font-bold uppercase font-mono border transition-all"
-              :class="tweaksStore.memAlgo === algo
-                ? 'bg-indigo-600 border-indigo-400 text-white shadow-md'
-                : 'bg-black/30 border-white/5 text-slate-400 hover:text-white'"
-            >
-              {{ algo }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Apply Button -->
-        <button
-          @click="tweaksStore.applyMemoryTuning"
-          :disabled="tweaksStore.isApplyingMem"
-          class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 active:scale-98 transition-all"
-        >
-          <Sparkles class="w-4 h-4" :class="{ 'animate-spin': tweaksStore.isApplyingMem }" />
-          <span>{{ tweaksStore.isApplyingMem ? t('tweaks.memory.applying') : t('tweaks.memory.applyBtn') }}</span>
-        </button>
-
-        <!-- Status Result Feedback -->
-        <div v-if="tweaksStore.memStatusMsg" class="p-2.5 rounded-xl bg-black/40 border border-indigo-500/20 text-[11px] font-mono text-indigo-300 break-words">
-          {{ tweaksStore.memStatusMsg }}
-        </div>
-      </div>
-    </div>
-
-    <!-- 2. Screen-Off ECO Hibernation Card -->
-    <div class="glass-card rounded-2xl p-4 border border-white/10 space-y-4">
-      <div class="flex items-start justify-between">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-            <Moon class="w-5 h-5" />
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-white">{{ t('tweaks.hibernate.title') }}</h3>
-            <p class="text-[11px] text-slate-400 leading-tight">{{ t('tweaks.hibernate.desc') }}</p>
-          </div>
-        </div>
-
-        <button
-          @click="tweaksStore.ecoEnabled = !tweaksStore.ecoEnabled; tweaksStore.saveEcoConfig()"
-          class="relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200"
-          :class="tweaksStore.ecoEnabled ? 'bg-emerald-600' : 'bg-slate-700'"
-        >
-          <span
-            class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white transition duration-200"
-            :class="tweaksStore.ecoEnabled ? 'translate-x-5' : 'translate-x-0'"
-          ></span>
-        </button>
-      </div>
-
-      <div v-if="tweaksStore.ecoEnabled" class="space-y-3 pt-2 border-t border-white/5 text-xs">
-        <!-- Default Mode Selector (full vs restrict) -->
-        <div class="space-y-1.5">
-          <label class="text-slate-300 font-medium block">{{ t('tweaks.hibernate.modeTitle') }}</label>
-          <div class="grid grid-cols-2 gap-2">
-            <button
-              @click="tweaksStore.ecoModeDefault = 'full'; tweaksStore.saveEcoConfig()"
-              class="p-2.5 rounded-xl border text-left transition-all"
-              :class="tweaksStore.ecoModeDefault === 'full'
-                ? 'bg-emerald-500/20 border-emerald-500/50 text-white'
-                : 'bg-black/25 border-white/5 text-slate-400'"
-            >
-              <div class="font-bold text-white flex items-center gap-1.5">
-                <ShieldAlert class="w-3.5 h-3.5 text-emerald-400" />
-                Full Eco
-              </div>
-              <p class="text-[10px] text-slate-400 mt-0.5">Restricted + Force Stop</p>
-            </button>
-
-            <button
-              @click="tweaksStore.ecoModeDefault = 'restrict'; tweaksStore.saveEcoConfig()"
-              class="p-2.5 rounded-xl border text-left transition-all"
-              :class="tweaksStore.ecoModeDefault === 'restrict'
-                ? 'bg-emerald-500/20 border-emerald-500/50 text-white'
-                : 'bg-black/25 border-white/5 text-slate-400'"
-            >
-              <div class="font-bold text-white flex items-center gap-1.5">
-                <Bell class="w-3.5 h-3.5 text-emerald-400" />
-                Restrict Mode
-              </div>
-              <p class="text-[10px] text-slate-400 mt-0.5">Notif FCM tetap masuk</p>
-            </button>
-          </div>
-        </div>
-
-        <!-- Skip Conditions -->
-        <div class="space-y-2 pt-1">
-          <!-- Skip Charging -->
-          <div class="flex items-center justify-between p-2.5 rounded-xl bg-black/25 border border-white/5">
+        <div class="md3-list-group overflow-hidden rounded-2xl space-y-0.5">
+          <!-- Toggle ZRAM -->
+          <div class="md3-list-item px-4 py-3 flex items-center justify-between">
             <div>
-              <div class="font-bold text-slate-200">{{ t('tweaks.hibernate.skipCharging') }}</div>
-              <div class="text-[10px] text-slate-400">{{ t('tweaks.hibernate.skipChargingDesc') }}</div>
+              <h3 class="text-xs font-bold text-[#e2e2e9]">{{ t('tweaks.memory.enableToggle') }}</h3>
+              <p class="text-[10px] text-[#c4c6d0] mt-0.5">ZRAM Swap & Swappiness Optimizer</p>
             </div>
             <input
-              v-model="tweaksStore.skipCharging"
-              @change="tweaksStore.saveEcoConfig"
+              v-model="tweaksStore.memEnabled"
               type="checkbox"
-              class="w-4 h-4 rounded text-emerald-600 focus:ring-0 cursor-pointer"
+              class="w-4 h-4 rounded text-[#a8c7fa] cursor-pointer"
             />
           </div>
 
-          <!-- Skip Audio -->
-          <div class="flex items-center justify-between p-2.5 rounded-xl bg-black/25 border border-white/5">
+          <!-- Controls if enabled -->
+          <div v-if="tweaksStore.memEnabled" class="md3-list-item px-4 py-3 space-y-2.5">
+            <!-- ZRAM Size -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <span class="text-[#c4c6d0]">{{ t('tweaks.memory.zramSize') }}</span>
+                <span class="font-bold font-mono text-[#a8c7fa]">{{ tweaksStore.zramSizeMB }} MB</span>
+              </div>
+              <input
+                v-model.number="tweaksStore.zramSizeMB"
+                type="range"
+                min="512"
+                max="4096"
+                step="256"
+                class="w-full h-1 bg-slate-700 rounded appearance-none cursor-pointer"
+              />
+            </div>
+
+            <!-- Swappiness -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <span class="text-[#c4c6d0]">{{ t('tweaks.memory.swappiness') }}</span>
+                <span class="font-bold font-mono text-[#a8c7fa]">{{ tweaksStore.swappiness }}</span>
+              </div>
+              <input
+                v-model.number="tweaksStore.swappiness"
+                type="range"
+                min="0"
+                max="200"
+                step="10"
+                class="w-full h-1 bg-slate-700 rounded appearance-none cursor-pointer"
+              />
+            </div>
+
+            <!-- Apply Button -->
+            <button
+              @click="tweaksStore.applyMemoryTuning"
+              :disabled="tweaksStore.isApplyingMem"
+              class="w-full py-2 rounded-xl bg-[#234475] hover:bg-[#2b538e] text-[#d6e3ff] text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+            >
+              <span>{{ tweaksStore.isApplyingMem ? 'Menerapkan...' : 'Terapkan Tuning Memori' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Screen-Off ECO Hibernation -->
+      <div>
+        <h2 class="text-xs font-bold text-[#a8c7fa] uppercase tracking-wider px-1 mb-1.5">
+          {{ t('tweaks.hibernate.title') }}
+        </h2>
+
+        <div class="md3-list-group overflow-hidden rounded-2xl space-y-0.5">
+          <!-- Toggle -->
+          <div class="md3-list-item px-4 py-3 flex items-center justify-between">
             <div>
-              <div class="font-bold text-slate-200">{{ t('tweaks.hibernate.skipAudio') }}</div>
-              <div class="text-[10px] text-slate-400">{{ t('tweaks.hibernate.skipAudioDesc') }}</div>
+              <h3 class="text-xs font-bold text-[#e2e2e9]">{{ t('tweaks.hibernate.enableToggle') }}</h3>
+              <p class="text-[10px] text-[#c4c6d0] mt-0.5">Bekukan aplikasi saat layar mati</p>
             </div>
             <input
-              v-model="tweaksStore.skipAudio"
+              v-model="tweaksStore.ecoEnabled"
               @change="tweaksStore.saveEcoConfig"
               type="checkbox"
-              class="w-4 h-4 rounded text-emerald-600 focus:ring-0 cursor-pointer"
+              class="w-4 h-4 rounded text-emerald-500 cursor-pointer"
             />
           </div>
-        </div>
 
-        <!-- Delay -->
-        <div class="space-y-1.5">
-          <div class="flex justify-between font-medium">
-            <span class="text-slate-300">{{ t('tweaks.hibernate.delay') }}</span>
-            <span class="text-emerald-400 font-bold font-mono">{{ tweaksStore.ecoDelay }}s ({{ Math.round(tweaksStore.ecoDelay / 60) }} menit)</span>
+          <div v-if="tweaksStore.ecoEnabled" class="md3-list-item px-4 py-3 space-y-2">
+            <!-- Mode Switcher -->
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-[#c4c6d0]">Mode:</span>
+              <div class="flex items-center gap-1 bg-[#111318] p-0.5 rounded-lg border border-white/5">
+                <button
+                  @click="tweaksStore.ecoModeDefault = 'full'; tweaksStore.saveEcoConfig()"
+                  class="px-2.5 py-1 rounded-md text-[10px] font-bold transition-all"
+                  :class="tweaksStore.ecoModeDefault === 'full' ? 'bg-emerald-600 text-white' : 'text-[#c4c6d0]'"
+                >
+                  Full Eco
+                </button>
+                <button
+                  @click="tweaksStore.ecoModeDefault = 'restrict'; tweaksStore.saveEcoConfig()"
+                  class="px-2.5 py-1 rounded-md text-[10px] font-bold transition-all"
+                  :class="tweaksStore.ecoModeDefault === 'restrict' ? 'bg-emerald-600 text-white' : 'text-[#c4c6d0]'"
+                >
+                  Restrict (Notif ON)
+                </button>
+              </div>
+            </div>
+
+            <!-- Skip Charging -->
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-xs text-[#c4c6d0]">{{ t('tweaks.hibernate.skipCharging') }}</span>
+              <input
+                v-model="tweaksStore.skipCharging"
+                @change="tweaksStore.saveEcoConfig"
+                type="checkbox"
+                class="w-3.5 h-3.5 rounded text-emerald-500 cursor-pointer"
+              />
+            </div>
+
+            <!-- Skip Audio -->
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-[#c4c6d0]">{{ t('tweaks.hibernate.skipAudio') }}</span>
+              <input
+                v-model="tweaksStore.skipAudio"
+                @change="tweaksStore.saveEcoConfig"
+                type="checkbox"
+                class="w-3.5 h-3.5 rounded text-emerald-500 cursor-pointer"
+              />
+            </div>
+
+            <!-- Delay -->
+            <div class="space-y-1 pt-1">
+              <div class="flex justify-between text-xs">
+                <span class="text-[#c4c6d0]">{{ t('tweaks.hibernate.delay') }}</span>
+                <span class="font-bold font-mono text-emerald-400">{{ tweaksStore.ecoDelay }}s</span>
+              </div>
+              <input
+                v-model.number="tweaksStore.ecoDelay"
+                @change="tweaksStore.saveEcoConfig"
+                type="range"
+                min="30"
+                max="600"
+                step="30"
+                class="w-full h-1 bg-slate-700 rounded appearance-none cursor-pointer"
+              />
+            </div>
+
+            <!-- Manage List Button -->
+            <button
+              @click="isEcoModalOpen = true"
+              class="w-full py-1.5 rounded-lg bg-[#111318] text-xs text-[#c4c6d0] hover:text-white font-medium border border-white/5"
+            >
+              {{ t('tweaks.hibernate.manageList') }} ({{ tweaksStore.hibernateApps.length }} Paket)
+            </button>
           </div>
-          <input
-            v-model.number="tweaksStore.ecoDelay"
-            @change="tweaksStore.saveEcoConfig"
-            type="range"
-            min="30"
-            max="600"
-            step="30"
-            class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer"
-          />
         </div>
+      </div>
 
-        <!-- Manage List Button -->
-        <button
-          @click="isEcoModalOpen = true"
-          class="w-full py-2 rounded-xl bg-black/30 hover:bg-black/40 border border-white/10 text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
-        >
-          <ListFilter class="w-4 h-4 text-emerald-400" />
-          <span>{{ t('tweaks.hibernate.manageList') }} ({{ tweaksStore.hibernateApps.length }} Paket)</span>
-        </button>
+      <!-- Section 3: Renderer & Maintenance -->
+      <div>
+        <h2 class="text-xs font-bold text-[#a8c7fa] uppercase tracking-wider px-1 mb-1.5">
+          Sistem & Grafis
+        </h2>
+
+        <div class="md3-list-group overflow-hidden rounded-2xl space-y-0.5">
+          <!-- HWUI Renderer Selection -->
+          <div class="md3-list-item px-4 py-3 space-y-1.5">
+            <h3 class="text-xs font-bold text-[#e2e2e9]">{{ t('tweaks.renderer.title') }}</h3>
+            <select
+              v-model="tweaksStore.currentRenderer"
+              @change="tweaksStore.setRenderer(tweaksStore.currentRenderer)"
+              class="w-full bg-[#111318] border border-white/10 rounded-xl px-3 py-2 text-xs text-[#e2e2e9] focus:outline-none focus:border-[#a8c7fa]"
+            >
+              <option value="skiaglthreaded">SkiaGL Threaded (Direkomendasikan)</option>
+              <option value="skiagl">SkiaGL (OpenGL ES)</option>
+              <option value="skiavkthreaded">SkiaVK Threaded (Vulkan)</option>
+              <option value="skiavk">SkiaVK (Vulkan)</option>
+              <option value="opengl">OpenGL Tradisional</option>
+              <option value="default">Default Sistem ROM</option>
+            </select>
+          </div>
+
+          <!-- FSTRIM Button -->
+          <div class="md3-list-item px-4 py-3 flex items-center justify-between">
+            <div>
+              <h3 class="text-xs font-bold text-[#e2e2e9]">{{ t('tweaks.fstrim.title') }}</h3>
+              <p class="text-[10px] text-[#c4c6d0] mt-0.5">Bersihkan blok partisi storage UFS/eMMC</p>
+            </div>
+            <button
+              @click="tweaksStore.runFstrimNow"
+              :disabled="tweaksStore.isRunningFstrim"
+              class="px-3 py-1.5 rounded-full bg-[#333a48] hover:bg-[#434b5c] text-[#d8e2ff] text-xs font-bold shrink-0"
+            >
+              {{ tweaksStore.isRunningFstrim ? 'Memproses...' : 'Trim Sekarang' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Logs & Preferences -->
+      <div>
+        <h2 class="text-xs font-bold text-[#a8c7fa] uppercase tracking-wider px-1 mb-1.5">
+          Lainnya & Utilitas
+        </h2>
+
+        <div class="md3-list-group overflow-hidden rounded-2xl space-y-0.5">
+          <!-- Live Logs Button -->
+          <div @click="isLogModalOpen = true; settingsStore.fetchLogs()" class="md3-list-item px-4 py-3 flex items-center justify-between cursor-pointer">
+            <div class="flex items-center gap-3">
+              <FileText class="w-4 h-4 text-[#a8c7fa]" />
+              <span class="text-xs font-bold text-[#e2e2e9]">Lihat Log Modul (Live Viewer)</span>
+            </div>
+            <ChevronRight class="w-4 h-4 text-[#c4c6d0]" />
+          </div>
+
+          <!-- Homescreen Shortcut -->
+          <div @click="settingsStore.createShortcut" class="md3-list-item px-4 py-3 flex items-center justify-between cursor-pointer">
+            <div class="flex items-center gap-3">
+              <Smartphone class="w-4 h-4 text-[#a8c7fa]" />
+              <span class="text-xs font-bold text-[#e2e2e9]">{{ t('logs.shortcutBtn') }}</span>
+            </div>
+            <ChevronRight class="w-4 h-4 text-[#c4c6d0]" />
+          </div>
+
+          <!-- Language Selector -->
+          <div class="md3-list-item px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <Globe class="w-4 h-4 text-[#a8c7fa]" />
+              <span class="text-xs font-bold text-[#e2e2e9]">Bahasa / Language</span>
+            </div>
+            <div class="flex items-center gap-1 bg-[#111318] p-0.5 rounded-lg border border-white/5">
+              <button
+                @click="setLanguage('id')"
+                class="px-2 py-0.5 rounded text-[10px] font-bold"
+                :class="currentLanguage === 'id' ? 'bg-[#234475] text-[#d6e3ff]' : 'text-[#c4c6d0]'"
+              >
+                ID 🇮🇩
+              </button>
+              <button
+                @click="setLanguage('en')"
+                class="px-2 py-0.5 rounded text-[10px] font-bold"
+                :class="currentLanguage === 'en' ? 'bg-[#234475] text-[#d6e3ff]' : 'text-[#c4c6d0]'"
+              >
+                EN 🇬🇧
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- 3. HWUI Graphics Renderer Card -->
-    <div class="glass-card rounded-2xl p-4 border border-white/10 space-y-3">
-      <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-          <Layers class="w-5 h-5" />
-        </div>
-        <div>
-          <h3 class="text-sm font-bold text-white">{{ t('tweaks.renderer.title') }}</h3>
-          <p class="text-[11px] text-slate-400 leading-tight">{{ t('tweaks.renderer.desc') }}</p>
-        </div>
-      </div>
-
-      <div class="space-y-1.5 pt-1 text-xs">
-        <div
-          v-for="(label, key) in rendererOptions"
-          :key="key"
-          @click="tweaksStore.setRenderer(key)"
-          class="p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all"
-          :class="tweaksStore.currentRenderer === key
-            ? 'bg-cyan-500/20 border-cyan-500/50 text-white font-bold'
-            : 'bg-black/25 border-white/5 text-slate-300 hover:border-white/15'"
-        >
-          <span>{{ label }}</span>
-          <Check v-if="tweaksStore.currentRenderer === key" class="w-4 h-4 text-cyan-400 shrink-0" />
-        </div>
-      </div>
-    </div>
-
-    <!-- 4. Storage Maintenance (FSTRIM) Card -->
-    <div class="glass-card rounded-2xl p-4 border border-white/10 space-y-3">
-      <div class="flex items-start justify-between">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
-            <HardDrive class="w-5 h-5" />
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-white">{{ t('tweaks.fstrim.title') }}</h3>
-            <p class="text-[11px] text-slate-400 leading-tight">{{ t('tweaks.fstrim.desc') }}</p>
-          </div>
-        </div>
-
-        <button
-          @click="tweaksStore.fstrimEnabled = !tweaksStore.fstrimEnabled; tweaksStore.saveFstrimConfig()"
-          class="relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200"
-          :class="tweaksStore.fstrimEnabled ? 'bg-amber-600' : 'bg-slate-700'"
-        >
-          <span
-            class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white transition duration-200"
-            :class="tweaksStore.fstrimEnabled ? 'translate-x-5' : 'translate-x-0'"
-          ></span>
-        </button>
-      </div>
-
-      <div class="space-y-2 pt-1 text-xs">
-        <button
-          @click="tweaksStore.runFstrimNow"
-          :disabled="tweaksStore.isRunningFstrim"
-          class="w-full py-2.5 rounded-xl bg-amber-600/80 hover:bg-amber-500 text-white font-bold flex items-center justify-center gap-2 shadow-md transition-all"
-        >
-          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': tweaksStore.isRunningFstrim }" />
-          <span>{{ tweaksStore.isRunningFstrim ? t('tweaks.fstrim.running') : t('tweaks.fstrim.runNow') }}</span>
-        </button>
-
-        <div v-if="tweaksStore.fstrimResult" class="p-2.5 rounded-xl bg-black/40 border border-white/10 text-[11px] font-mono text-amber-300 break-words whitespace-pre-line">
-          {{ tweaksStore.fstrimResult }}
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal: Manage Hibernate Apps -->
+    <!-- Modal: Eco Hibernate List -->
     <Modal :isOpen="isEcoModalOpen" @close="isEcoModalOpen = false" title="Daftar Paket Hibernasi">
-      <div class="space-y-3 text-xs">
-        <p class="text-slate-400 leading-relaxed">
-          Tuliskan nama paket aplikasi (satu per baris) yang ingin dibekukan saat layar mati.
-        </p>
-
+      <div class="space-y-2">
         <textarea
           v-model="tweaksStore.rawHibernateList"
-          rows="8"
-          placeholder="com.facebook.katana&#10;com.instagram.android&#10;com.shopee.id"
-          class="w-full bg-[#0d131f] border border-white/10 rounded-xl p-3 text-xs font-mono text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+          rows="6"
+          placeholder="com.facebook.katana&#10;com.instagram.android"
+          class="w-full bg-[#111318] border border-white/10 rounded-xl p-2.5 text-xs font-mono text-[#e2e2e9] focus:outline-none focus:border-[#a8c7fa]"
         ></textarea>
-      </div>
-
-      <template #footer>
         <button
-          @click="isEcoModalOpen = false"
-          class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
-        >
-          {{ t('common.cancel') }}
-        </button>
-        <button
-          @click="saveHibernateList"
-          class="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold"
+          @click="tweaksStore.saveEcoConfig(); isEcoModalOpen = false"
+          class="w-full py-2 rounded-xl bg-[#a8c7fa] text-[#04305f] text-xs font-bold"
         >
           {{ t('common.save') }}
         </button>
-      </template>
+      </div>
+    </Modal>
+
+    <!-- Modal: Live Log Viewer -->
+    <Modal :isOpen="isLogModalOpen" @close="isLogModalOpen = false" title="Live Log AZenith">
+      <div class="space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <div class="flex items-center gap-1 bg-[#111318] p-0.5 rounded-lg border border-white/5">
+            <button
+              @click="settingsStore.setLogType('azenith')"
+              class="px-2 py-1 rounded text-[10px] font-bold"
+              :class="settingsStore.selectedLogType === 'azenith' ? 'bg-[#234475] text-[#d6e3ff]' : 'text-[#c4c6d0]'"
+            >
+              AZenith.log
+            </button>
+            <button
+              @click="settingsStore.setLogType('sysmon')"
+              class="px-2 py-1 rounded text-[10px] font-bold"
+              :class="settingsStore.selectedLogType === 'sysmon' ? 'bg-[#234475] text-[#d6e3ff]' : 'text-[#c4c6d0]'"
+            >
+              sysmon.log
+            </button>
+          </div>
+
+          <button @click="settingsStore.clearLogs" class="text-rose-400 font-semibold text-[11px]">
+            Bersihkan
+          </button>
+        </div>
+
+        <pre
+          class="w-full h-52 bg-[#0c0e13] border border-white/10 rounded-xl p-2.5 text-[10px] font-mono text-emerald-400 overflow-y-auto whitespace-pre-wrap select-all scrollbar-hidden"
+        >{{ settingsStore.logContent }}</pre>
+
+        <button
+          @click="settingsStore.copyLogs"
+          class="w-full py-1.5 rounded-xl bg-[#333a48] text-[#d8e2ff] text-xs font-bold"
+        >
+          Salin ke Clipboard
+        </button>
+      </div>
     </Modal>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import {
-  SlidersHorizontal,
-  MemoryStick,
-  Sparkles,
-  Moon,
-  ShieldAlert,
-  Bell,
-  ListFilter,
-  Layers,
-  Check,
-  HardDrive,
-  RefreshCw,
-} from 'lucide-vue-next'
+import { ref, onMounted } from 'vue'
+import { FileText, Smartphone, Globe, ChevronRight } from 'lucide-vue-next'
 import { useZenithTweaksStore } from '@/stores/ZenithTweaks'
+import { useZenithSettingsStore } from '@/stores/ZenithSettings'
 import { useLocales } from '@/helpers/Locales'
 import Modal from '@/components/Modal.vue'
 
 const tweaksStore = useZenithTweaksStore()
-const { t } = useLocales()
+const settingsStore = useZenithSettingsStore()
+const { t, currentLanguage, setLanguage } = useLocales()
 
 const isEcoModalOpen = ref(false)
+const isLogModalOpen = ref(false)
 
 onMounted(() => {
   tweaksStore.loadAllTweaks()
 })
-
-const rendererOptions = computed(() => ({
-  skiaglthreaded: t('tweaks.renderer.options.skiaglthreaded'),
-  skiagl: t('tweaks.renderer.options.skiagl'),
-  skiavkthreaded: t('tweaks.renderer.options.skiavkthreaded'),
-  skiavk: t('tweaks.renderer.options.skiavk'),
-  opengl: t('tweaks.renderer.options.opengl'),
-  default: t('tweaks.renderer.options.default'),
-}))
-
-async function saveHibernateList() {
-  await tweaksStore.saveEcoConfig()
-  isEcoModalOpen.value = false
-}
 </script>
-
-<style scoped>
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.25s ease-out forwards;
-}
-</style>
