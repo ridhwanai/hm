@@ -1,18 +1,10 @@
 <template>
   <div class="page home-page h-full flex flex-col">
     <!-- Header -->
-    <div class="sticky top-0 z-10 bg-[#111318]">
+    <div class="sticky top-0 z-10 bg-background">
       <div class="max-w-3xl mx-auto p-5 pb-3">
-        <div class="flex justify-between items-center text-[#e2e2e9]">
+        <div class="flex justify-between items-center text-on-surface">
           <h1 class="text-xl font-semibold">{{ t('home_page.title') }}</h1>
-          <span
-            class="text-[11px] px-2.5 py-1 rounded-full font-semibold border"
-            :class="homeStore.autoModeEnabled 
-              ? 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30' 
-              : 'bg-slate-800 text-slate-400 border-white/5'"
-          >
-            {{ homeStore.autoModeEnabled ? 'AI Dynamic: ON' : 'Manual' }}
-          </span>
         </div>
       </div>
     </div>
@@ -20,81 +12,73 @@
     <!-- Scrollable Content -->
     <div class="scrollbar-hidden pb-safe-nav flex-1 min-h-0 overflow-y-scroll">
       <div class="max-w-3xl mx-auto p-5 py-1">
-        <!-- Daemon Status -->
-        <div class="bg-[#282a30] mb-4 p-4 rounded-2xl flex items-center justify-between text-[#e2e2e9] shadow-sm">
+        <!-- Daemon Status Card -->
+        <div
+          class="bg-secondary-container mb-4 p-4 rounded-xl flex items-center justify-between text-on-secondary-container"
+        >
           <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white font-black text-2xl shadow-md shrink-0 mx-2">
             W
           </div>
           <div class="flex-1 flex flex-col px-3">
-            <span class="text-base font-semibold">{{ daemonStatusText }}</span>
-            <span class="text-xs text-[#c4c6d0] pt-1 block">{{ daemonPidText }}</span>
+            <span class="text-lg font-semibold">{{ daemonStatusText }}</span>
+            <span class="text-xs pt-1 block">{{ daemonPidText }}</span>
           </div>
         </div>
 
-        <!-- Auto Mode Card -->
-        <RippleComponent
-          @click="homeStore.toggleAutoMode(!homeStore.autoModeEnabled)"
-          class="cursor-pointer bg-[#1e1f25] mb-4 p-4 rounded-2xl w-full flex items-center justify-between text-[#e2e2e9]"
-        >
-          <div class="pr-3">
-            <h2 class="text-sm font-medium">{{ t('home_page.auto_mode.title') }}</h2>
-            <p class="text-xs text-[#c4c6d0] mt-0.5 leading-snug">{{ t('home_page.auto_mode.description') }}</p>
-          </div>
-
-          <button
-            class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 pointer-events-none"
-            :class="homeStore.autoModeEnabled ? 'bg-[#a8c7fa]' : 'bg-slate-700'"
-          >
-            <span
-              class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-[#04305f] shadow-sm transition duration-200"
-              :class="homeStore.autoModeEnabled ? 'translate-x-5' : 'translate-x-0'"
-            ></span>
-          </button>
-        </RippleComponent>
-
-        <!-- Device & Module Info Card -->
-        <div class="bg-[#1e1f25] mb-4 p-4 rounded-2xl text-[#e2e2e9] space-y-3">
+        <!-- Device & Module Info -->
+        <div class="bg-surface-container mb-4 p-4 rounded-xl text-on-surface">
           <!-- Module -->
-          <div class="py-1 px-2 flex items-start gap-4">
-            <Sparkles class="w-5 h-5 text-[#a8c7fa] mt-1 shrink-0" />
+          <div class="py-2 px-2 flex items-start gap-4">
+            <StarIcon class="text-primary mt-2 shrink-0" />
             <div>
-              <h3 class="text-sm font-medium text-[#e2e2e9]">{{ t('home_page.info_card.module') }}</h3>
-              <span class="allow-copy text-xs text-[#c4c6d0] block mt-0.5">{{ homeStore.moduleVersion }}</span>
+              <h3 class="text-sm font-medium text-on-surface">
+                {{ t('home_page.info_card.module') }}
+              </h3>
+              <span class="allow-copy text-xs text-on-surface-variant block mt-1">
+                {{ homeStore.moduleVersion }}
+              </span>
             </div>
           </div>
 
-          <!-- Profile (Click to Switch) -->
-          <div class="py-1 px-2 flex items-start gap-4">
-            <Sliders class="w-5 h-5 text-[#a8c7fa] mt-1 shrink-0" />
+          <!-- Profile -->
+          <div class="py-2 px-2 flex items-start gap-4">
+            <StarlyGear class="text-primary mt-2 shrink-0" />
             <div class="flex-1">
               <div class="flex items-center justify-between">
-                <h3 class="text-sm font-medium text-[#e2e2e9]">{{ t('home_page.info_card.profile') }}</h3>
-                <span class="text-[10px] px-2 py-0.5 rounded font-bold uppercase" :class="getProfileBadgeClass(homeStore.currentProfile)">
+                <h3 class="text-sm font-medium text-on-surface">
+                  {{ t('home_page.info_card.profile') }}
+                </h3>
+                <span
+                  class="text-[10px] px-2 py-0.5 rounded font-bold uppercase"
+                  :class="getProfileBadgeClass(homeStore.currentProfile)"
+                >
                   {{ homeStore.currentProfile }}
                 </span>
               </div>
-              <span class="allow-copy text-xs text-[#c4c6d0] block mt-0.5">{{ currentProfileText }}</span>
+              <span class="allow-copy text-xs text-on-surface-variant block mt-1">
+                {{ currentProfileText }}
+              </span>
 
-              <!-- Manual switch buttons -->
+              <!-- Manual Profile Switcher -->
               <div class="grid grid-cols-3 gap-1.5 mt-2.5">
                 <button
-                  @click.stop="homeStore.setManualProfile('performance')"
+                  @click="homeStore.setManualProfile('performance')"
                   class="py-1.5 rounded-lg text-xs font-semibold border transition-all"
-                  :class="homeStore.currentProfile === 'performance' ? 'bg-rose-500/20 border-rose-500/50 text-rose-300' : 'bg-black/25 border-transparent text-[#c4c6d0]'"
+                  :class="homeStore.currentProfile === 'performance' ? 'bg-rose-500/20 border-rose-500/50 text-rose-300' : 'bg-surface border-transparent text-on-surface-variant'"
                 >
                   Performa
                 </button>
                 <button
-                  @click.stop="homeStore.setManualProfile('balanced')"
+                  @click="homeStore.setManualProfile('balanced')"
                   class="py-1.5 rounded-lg text-xs font-semibold border transition-all"
-                  :class="homeStore.currentProfile === 'balanced' ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300' : 'bg-black/25 border-transparent text-[#c4c6d0]'"
+                  :class="homeStore.currentProfile === 'balanced' ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300' : 'bg-surface border-transparent text-on-surface-variant'"
                 >
                   Seimbang
                 </button>
                 <button
-                  @click.stop="homeStore.setManualProfile('eco')"
+                  @click="homeStore.setManualProfile('eco')"
                   class="py-1.5 rounded-lg text-xs font-semibold border transition-all"
-                  :class="homeStore.currentProfile === 'eco' ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300' : 'bg-black/25 border-transparent text-[#c4c6d0]'"
+                  :class="homeStore.currentProfile === 'eco' ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300' : 'bg-surface border-transparent text-on-surface-variant'"
                 >
                   ECO
                 </button>
@@ -103,29 +87,41 @@
           </div>
 
           <!-- Kernel -->
-          <div class="py-1 px-2 flex items-start gap-4">
-            <Terminal class="w-5 h-5 text-[#a8c7fa] mt-1 shrink-0" />
+          <div class="py-2 px-2 flex items-start gap-4">
+            <ConsoleIcon class="text-primary mt-2 shrink-0" />
             <div>
-              <h3 class="text-sm font-medium text-[#e2e2e9]">{{ t('home_page.info_card.kernel') }}</h3>
-              <span class="allow-copy text-xs text-[#c4c6d0] block mt-0.5">{{ homeStore.deviceSpecs.kernel }}</span>
+              <h3 class="text-sm font-medium text-on-surface">
+                {{ t('home_page.info_card.kernel') }}
+              </h3>
+              <span class="allow-copy text-xs text-on-surface-variant block mt-1">
+                {{ homeStore.deviceSpecs.kernel }}
+              </span>
             </div>
           </div>
 
           <!-- Chipset -->
-          <div class="py-1 px-2 flex items-start gap-4">
-            <Cpu class="w-5 h-5 text-[#a8c7fa] mt-1 shrink-0" />
+          <div class="py-2 px-2 flex items-start gap-4">
+            <ChipsetIcon class="text-primary mt-2 shrink-0" />
             <div>
-              <h3 class="text-sm font-medium text-[#e2e2e9]">{{ t('home_page.info_card.chipset') }}</h3>
-              <span class="allow-copy text-xs text-[#c4c6d0] block mt-0.5">{{ homeStore.deviceSpecs.soc }}</span>
+              <h3 class="text-sm font-medium text-on-surface">
+                {{ t('home_page.info_card.chipset') }}
+              </h3>
+              <span class="allow-copy text-xs text-on-surface-variant block mt-1">
+                {{ homeStore.deviceSpecs.soc }}
+              </span>
             </div>
           </div>
 
           <!-- Android SDK -->
-          <div class="py-1 px-2 flex items-start gap-4">
-            <Smartphone class="w-5 h-5 text-[#a8c7fa] mt-1 shrink-0" />
+          <div class="py-2 px-2 flex items-start gap-4">
+            <AndroidIcon class="text-primary mt-2 shrink-0" />
             <div>
-              <h3 class="text-sm font-medium text-[#e2e2e9]">{{ t('home_page.info_card.androidSDK') }}</h3>
-              <span class="allow-copy text-xs text-[#c4c6d0] block mt-0.5">{{ homeStore.deviceSpecs.sdk }}</span>
+              <h3 class="text-sm font-medium text-on-surface">
+                {{ t('home_page.info_card.androidSDK') }}
+              </h3>
+              <span class="allow-copy text-xs text-on-surface-variant block mt-1">
+                {{ homeStore.deviceSpecs.sdk }}
+              </span>
             </div>
           </div>
         </div>
@@ -133,10 +129,14 @@
         <!-- Support Me Button -->
         <RippleComponent
           tabindex="0"
-          class="cursor-pointer text-[#e2e2e9] bg-[#1e1f25] mb-4 p-4 py-5 rounded-2xl w-full"
+          class="cursor-pointer text-on-surface bg-surface-container mb-4 p-4 py-5 rounded-xl w-full"
         >
-          <h2 class="text-sm font-medium px-2 mb-1">{{ t('home_page.support_button.title') }}</h2>
-          <p class="text-xs text-[#c4c6d0] px-2 mb-1">{{ t('home_page.support_button.description') }}</p>
+          <h2 class="text-sm font-medium px-2 mb-1 relative z-10">
+            {{ t('home_page.support_button.title') }}
+          </h2>
+          <p class="text-sm text-on-surface-variant px-2 mb-1 relative z-10">
+            {{ t('home_page.support_button.description') }}
+          </p>
         </RippleComponent>
       </div>
     </div>
@@ -145,13 +145,18 @@
 
 <script setup>
 import { onMounted, computed } from 'vue'
-import { Sparkles, Sliders, Terminal, Cpu, Smartphone } from 'lucide-vue-next'
 import { useZenithHomeStore } from '@/stores/ZenithHome'
 import { useLocales } from '@/helpers/Locales'
-import RippleComponent from '@/components/ui/Ripple.vue'
 
-const homeStore = useZenithHomeStore()
+import RippleComponent from '@/components/ui/Ripple.vue'
+import StarIcon from '@/components/icons/Star.vue'
+import StarlyGear from '@/components/icons/StarlyGear.vue'
+import ConsoleIcon from '@/components/icons/Console.vue'
+import ChipsetIcon from '@/components/icons/Chipset.vue'
+import AndroidIcon from '@/components/icons/Android.vue'
+
 const { t } = useLocales()
+const homeStore = useZenithHomeStore()
 
 onMounted(async () => {
   await homeStore.initialize()

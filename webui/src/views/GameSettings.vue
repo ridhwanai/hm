@@ -1,82 +1,103 @@
 <template>
-  <div class="page game-settings-page h-full flex flex-col overflow-hidden">
+  <div class="page game-settings-page h-full flex flex-col overflow-hidden bg-surface">
     <div class="max-w-3xl mx-auto h-full flex flex-col w-full">
-      <!-- Top Header with Back Button -->
+      <!-- Top Header -->
       <div class="flex-none p-5 pb-3">
-        <div class="flex items-center gap-3 text-[#e2e2e9]">
-          <button
-            @click="router.back()"
-            class="p-2 rounded-full hover:bg-white/10 transition-colors"
-          >
-            <ArrowLeft class="w-5 h-5" />
+        <div class="flex items-center gap-4 mb-2">
+          <button @click="router.back()" class="text-on-surface transition-colors cursor-pointer">
+            <ArrowLeftIcon class="w-6 h-6 rtl:rotate-180" />
           </button>
-          <h1 class="text-xl font-semibold truncate">{{ currentGame?.name || packageName }}</h1>
         </div>
       </div>
 
       <!-- Settings Content -->
       <div class="scrollbar-hidden pb-safe-nav flex-1 min-h-0 overflow-y-scroll px-5 space-y-4">
         <!-- App Info Card -->
-        <div class="bg-[#1e1f25] p-4 rounded-2xl flex items-center gap-4 text-[#e2e2e9]">
-          <div class="w-14 h-14 rounded-2xl bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden shadow-md">
-            <img v-if="currentGame?.icon" :src="currentGame.icon" class="w-full h-full object-cover" />
-            <Gamepad2 v-else class="w-7 h-7 text-[#a8c7fa]" />
+        <div class="bg-surface-container p-5 rounded-3xl flex items-center gap-4 text-on-surface">
+          <img
+            v-if="currentGame?.icon"
+            :src="currentGame.icon"
+            class="w-14 h-14 rounded-full object-cover shrink-0"
+          />
+          <div
+            v-else
+            class="w-14 h-14 rounded-full bg-primary-container flex items-center justify-center shrink-0"
+          >
+            <GamesIcon class="w-7 h-7 text-on-primary-container" />
           </div>
+
           <div class="min-w-0 flex-1">
-            <h2 class="text-base font-bold truncate">{{ currentGame?.name || packageName }}</h2>
-            <p class="text-xs text-[#c4c6d0] font-mono truncate mt-0.5">{{ packageName }}</p>
+            <h2 class="text-base font-semibold truncate">{{ currentGame?.name || packageName }}</h2>
+            <p class="text-xs text-on-surface-variant font-mono truncate mt-0.5">{{ packageName }}</p>
           </div>
         </div>
 
-        <!-- Group: Settings -->
-        <div class="md3-list-group overflow-hidden rounded-2xl space-y-0.5">
-          <!-- DND Toggle -->
-          <div class="md3-list-item px-5 py-4 flex items-center justify-between">
-            <div class="pr-3">
-              <h3 class="text-sm font-medium text-[#e2e2e9]">{{ t('games_page.settings.dnd') }}</h3>
-              <p class="text-xs text-[#c4c6d0] mt-0.5">{{ t('games_page.settings.dnd_desc') }}</p>
+        <!-- Group: Switches -->
+        <div class="space-y-1.5">
+          <!-- Lite Mode Toggle -->
+          <div class="md3-list">
+            <div class="md3-list-item px-5 py-4 flex items-center justify-between">
+              <div class="pr-3 flex-1 min-w-0">
+                <h3 class="text-sm font-medium text-on-surface">
+                  Mode Lite (Hemat Daya Game)
+                </h3>
+                <p class="text-xs text-on-surface-variant mt-1">
+                  Batasi clockspeed CPU/GPU agar HP tidak cepat panas saat memainkan game ini.
+                </p>
+              </div>
+              <ToggleSwitch :modelValue="currentGame?.liteMode || false" @update:modelValue="toggleLiteMode" />
             </div>
-            <button
-              @click="toggleDnd"
-              class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200"
-              :class="currentGame?.dnd ? 'bg-[#a8c7fa]' : 'bg-slate-700'"
-            >
-              <span
-                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-[#04305f] shadow-sm transition duration-200"
-                :class="currentGame?.dnd ? 'translate-x-5' : 'translate-x-0'"
-              ></span>
-            </button>
+          </div>
+
+          <!-- DND Toggle -->
+          <div class="md3-list">
+            <div class="md3-list-item px-5 py-4 flex items-center justify-between">
+              <div class="pr-3 flex-1 min-w-0">
+                <h3 class="text-sm font-medium text-on-surface">
+                  {{ t('games_page.settings.dnd') }}
+                </h3>
+                <p class="text-xs text-on-surface-variant mt-1">
+                  {{ t('games_page.settings.dnd_desc') }}
+                </p>
+              </div>
+              <ToggleSwitch :modelValue="currentGame?.dnd || false" @update:modelValue="toggleDnd" />
+            </div>
           </div>
 
           <!-- Renderer Selector -->
-          <div class="md3-list-item px-5 py-4 space-y-2">
-            <div>
-              <h3 class="text-sm font-medium text-[#e2e2e9]">{{ t('games_page.settings.renderer') }}</h3>
-              <p class="text-xs text-[#c4c6d0] mt-0.5">{{ t('games_page.settings.renderer_desc') }}</p>
+          <div class="md3-list">
+            <div class="md3-list-item px-5 py-4 space-y-2">
+              <div>
+                <h3 class="text-sm font-medium text-on-surface">
+                  {{ t('games_page.settings.renderer') }}
+                </h3>
+                <p class="text-xs text-on-surface-variant mt-1">
+                  {{ t('games_page.settings.renderer_desc') }}
+                </p>
+              </div>
+              <select
+                :value="currentGame?.renderer || 'default'"
+                @change="updateRenderer($event.target.value)"
+                class="w-full bg-surface-container-high border border-outline/20 rounded-xl px-3 py-2 text-xs text-on-surface focus:outline-none focus:border-primary"
+              >
+                <option value="default">Default Sistem ROM</option>
+                <option value="skiaglthreaded">SkiaGL Threaded (Sangat Disarankan)</option>
+                <option value="skiagl">SkiaGL (OpenGL ES)</option>
+                <option value="skiavkthreaded">SkiaVK Threaded (Vulkan)</option>
+                <option value="skiavk">SkiaVK (Vulkan)</option>
+                <option value="opengl">OpenGL Tradisional</option>
+              </select>
             </div>
-            <select
-              :value="currentGame?.renderer || 'default'"
-              @change="updateRenderer($event.target.value)"
-              class="w-full bg-[#111318] border border-white/10 rounded-xl px-3 py-2 text-xs text-[#e2e2e9] focus:outline-none focus:border-[#a8c7fa]"
-            >
-              <option value="default">Default Sistem ROM</option>
-              <option value="skiaglthreaded">SkiaGL Threaded (Sangat Disarankan)</option>
-              <option value="skiagl">SkiaGL (OpenGL ES)</option>
-              <option value="skiavkthreaded">SkiaVK Threaded (Vulkan)</option>
-              <option value="skiavk">SkiaVK (Vulkan)</option>
-              <option value="opengl">OpenGL Tradisional</option>
-            </select>
           </div>
         </div>
 
         <!-- Delete from list button -->
-        <button
+        <RippleComponent
           @click="handleDelete"
-          class="w-full py-3.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs font-bold transition-colors flex items-center justify-center gap-2 border border-rose-500/20"
+          class="w-full py-4 rounded-3xl bg-error-container text-on-error-container text-xs font-semibold text-center cursor-pointer transition-colors"
         >
-          <Trash2 class="w-4 h-4" />
-          <span>Hapus dari Daftar Permainan</span>
-        </button>
+          Hapus dari Daftar Permainan
+        </RippleComponent>
       </div>
     </div>
   </div>
@@ -85,9 +106,13 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Gamepad2, Trash2 } from 'lucide-vue-next'
 import { useZenithGamesStore } from '@/stores/ZenithGames'
 import { useLocales } from '@/helpers/Locales'
+
+import ArrowLeftIcon from '@/components/icons/ArrowLeft.vue'
+import GamesIcon from '@/components/icons/Games.vue'
+import ToggleSwitch from '@/components/ui/ToggleSwitch.vue'
+import RippleComponent from '@/components/ui/Ripple.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -100,9 +125,14 @@ const currentGame = computed(() => {
   return gamesStore.games.find(g => g.package === packageName.value)
 })
 
-async function toggleDnd() {
+async function toggleLiteMode(val) {
   if (!currentGame.value) return
-  await gamesStore.updateGameConfig(packageName.value, { dnd: !currentGame.value.dnd })
+  await gamesStore.updateGameConfig(packageName.value, { liteMode: val })
+}
+
+async function toggleDnd(val) {
+  if (!currentGame.value) return
+  await gamesStore.updateGameConfig(packageName.value, { dnd: val })
 }
 
 async function updateRenderer(val) {

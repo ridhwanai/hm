@@ -1,34 +1,29 @@
 <template>
-  <nav
-    ref="navEl"
-    class="fixed bottom-0 left-0 right-0 w-full flex items-end bg-[#1e1f25] shadow-lg z-50 md:left-0 md:top-0 md:bottom-0 md:w-20 md:h-full md:flex-col backdrop-blur-md border-t border-white/5"
+  <nav ref="navEl"
+    class="footer fixed bottom-0 left-0 right-0 w-full flex items-end bg-surface-container shadow-lg z-50 md:left-0 md:top-0 md:bottom-0 md:w-23 md:h-full md:flex-col backdrop-blur-md"
     :style="{
       paddingBottom: 'var(--window-inset-bottom, 0px)',
       paddingRight: 'var(--window-inset-right, 0px)',
       paddingLeft: 'var(--window-inset-left, 0px)'
-    }"
-  >
-    <div class="w-full h-18 flex items-center justify-around md:h-full md:flex-col md:justify-center">
-      <router-link
-        v-for="item in navItems"
-        :key="item.name"
-        :to="item.path"
-        class="w-full flex justify-center items-center flex-col py-1 gap-1 text-xs no-underline transition-all duration-200"
+    }">
+    <div class="w-full h-20 flex items-center justify-center md:h-full md:flex-col md:justify-center">
+      <router-link v-for="item in navItems" :key="item.name" :to="item.path"
+        class="footer-btn gap-1 w-full max-w-50 text-on-secondary-container border-none bg-transparent text-sm flex justify-center items-center flex-col user-select-none p-0 no-underline transition-all duration-200 md:max-h-min md:py-3"
         :class="{
-          'text-[#e2e2e9]': isActive(item),
-          'text-[#c4c6d0]': !isActive(item),
-        }"
-      >
+          'text-on-background': isActive(item),
+          'text-on-surface-variant': !isActive(item),
+        }">
         <div
-          class="h-8 flex justify-center items-center rounded-full transition-all duration-200 ease-in-out"
+          class="footer-btn-icon h-8 flex justify-center items-center rounded-full transition-all duration-200 ease-in-out"
           :class="{
-            'bg-[#333a48] text-[#d8e2ff] px-5': isActive(item),
-            'px-0 text-[#c4c6d0]': !isActive(item),
-          }"
-        >
-          <component :is="item.icon" class="w-5 h-5" />
+            'bg-secondary-container px-5': isActive(item),
+            'px-0': !isActive(item),
+          }">
+          <component :is="item.icon" :active="isActive(item)" />
         </div>
-        <span class="font-medium text-[11px]">{{ item.label }}</span>
+        <div class="footer-btn-text text-xs">
+          <span class="font-medium">{{ item.label }}</span>
+        </div>
       </router-link>
     </div>
   </nav>
@@ -37,8 +32,11 @@
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
-import { Home, Gamepad2, Settings } from 'lucide-vue-next'
 import { useLocales } from '@/helpers/Locales'
+
+import HomeIcon from '@/components/icons/Home.vue'
+import GamesIcon from '@/components/icons/Games.vue'
+import SettingsIcon from '@/components/icons/Settings.vue'
 
 const { t } = useLocales()
 const route = useRoute()
@@ -47,20 +45,20 @@ const navItems = computed(() => [
   {
     name: 'Home',
     path: '/',
-    label: t('nav.dashboard'),
-    icon: Home,
+    label: t('navigation.home'),
+    icon: HomeIcon,
   },
   {
     name: 'Games',
     path: '/games',
-    label: t('nav.games'),
-    icon: Gamepad2,
+    label: t('navigation.games'),
+    icon: GamesIcon,
   },
   {
     name: 'Settings',
     path: '/settings',
-    label: t('nav.tweaks'),
-    icon: Settings,
+    label: t('navigation.settings'),
+    icon: SettingsIcon,
   },
 ])
 
@@ -78,8 +76,20 @@ onMounted(() => {
     const h = entry.borderBoxSize?.[0]?.blockSize ?? entry.target.offsetHeight
     document.documentElement.style.setProperty('--nav-height', `${h}px`)
   })
-  if (navEl.value) ro.observe(navEl.value)
+  ro.observe(navEl.value)
 })
 
 onBeforeUnmount(() => ro?.disconnect())
 </script>
+
+<style scoped>
+.footer-btn {
+  flex: 1;
+}
+
+.footer-btn-icon {
+  transition:
+    background-color 0.2s ease,
+    padding 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+</style>

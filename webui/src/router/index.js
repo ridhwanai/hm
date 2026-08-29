@@ -10,6 +10,7 @@ import HibernateSettings from '@/views/HibernateSettings.vue'
 import RendererSettings from '@/views/RendererSettings.vue'
 import LogsView from '@/views/LogsView.vue'
 import LanguageView from '@/views/LanguageView.vue'
+import LiteMode from '@/views/LiteMode.vue'
 
 const routes = [
   {
@@ -31,6 +32,11 @@ const routes = [
     path: '/settings',
     name: 'Settings',
     component: Settings,
+  },
+  {
+    path: '/settings/lite_mode',
+    name: 'LiteMode',
+    component: LiteMode,
   },
   {
     path: '/settings/memory',

@@ -3,40 +3,43 @@
     <div class="max-w-3xl mx-auto h-full flex flex-col w-full">
       <!-- Header -->
       <div class="flex-none p-5 pb-0">
-        <div class="flex justify-between items-center mb-4 text-[#e2e2e9]">
+        <div class="flex justify-between items-center mb-6 text-on-surface">
           <h1 class="text-xl font-semibold">{{ t('games_page.title') }}</h1>
           
           <button
             @click="openAddModal"
-            class="px-3 py-1.5 rounded-full bg-[#a8c7fa] hover:bg-[#82b1ff] text-[#04305f] text-xs font-bold flex items-center gap-1 shadow-sm transition-all"
+            class="px-3 py-1.5 rounded-full bg-primary hover:bg-primary/80 text-on-primary text-xs font-medium flex items-center gap-1 transition-colors"
           >
-            <Plus class="w-4 h-4" />
-            <span>{{ t('games_page.add_game') }}</span>
+            <span>+ {{ t('games_page.add_game') }}</span>
           </button>
         </div>
 
-        <!-- Search Bar -->
-        <div class="bg-[#1e1f25] mb-4 p-3 rounded-full flex items-center gap-3">
-          <Search class="ml-2 text-[#c4c6d0] w-5 h-5 shrink-0" />
-          <input
-            v-model="gamesStore.searchQuery"
-            type="text"
-            :placeholder="t('games_page.search_placeholder')"
-            class="bg-transparent border-none outline-none text-[#e2e2e9] placeholder-[#8e9099] w-full text-sm"
-          />
-          <button
-            v-if="gamesStore.searchQuery"
-            @click="gamesStore.searchQuery = ''"
-            class="text-[#c4c6d0] hover:text-white mr-2"
-          >
-            <X class="w-4 h-4" />
-          </button>
+        <!-- Search -->
+        <div class="bg-surface-container mb-4 p-3 rounded-full">
+          <div class="flex items-center gap-3">
+            <SearchIcon class="ml-2 text-on-surface-variant shrink-0" />
+            <input
+              v-model="gamesStore.searchQuery"
+              type="text"
+              :placeholder="t('games_page.search_placeholder')"
+              class="bg-transparent border-none outline-none text-on-surface placeholder-on-surface-variant w-full text-sm"
+            />
+            <button
+              v-if="gamesStore.searchQuery"
+              @click="gamesStore.searchQuery = ''"
+              class="text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer mr-3"
+            >
+              <CloseIcon class="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Games List -->
+      <!-- List -->
       <div class="scrollbar-hidden pb-safe-nav flex-1 min-h-0 overflow-y-scroll px-5">
-        <div v-if="filteredGames.length > 0" class="space-y-1 pb-4">
+        <LoadingSpinner class="text-primary pt-8" v-if="gamesStore.isLoading" />
+
+        <div v-else class="pb-4">
           <div
             v-for="app in filteredGames"
             :key="app.package"
@@ -45,76 +48,104 @@
             <RippleComponent @click="onAppClick(app)" tabindex="0" class="md3-list-item">
               <div class="flex items-center justify-between px-5 py-4">
                 <div class="flex items-center gap-4 min-w-0 flex-1">
-                  <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
-                    <img v-if="app.icon" :src="app.icon" class="w-full h-full object-cover" :alt="app.name" />
-                    <Gamepad2 v-else class="w-6 h-6 text-[#a8c7fa]" />
+                  <img
+                    v-if="app.icon"
+                    :src="app.icon"
+                    loading="lazy"
+                    class="w-12 h-12 rounded-full object-cover shrink-0"
+                    :alt="app.name"
+                  />
+                  <div
+                    v-else
+                    class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center shrink-0"
+                  >
+                    <GamesIcon class="w-6 h-6 text-on-primary-container" />
                   </div>
 
                   <div class="flex-1 min-w-0">
-                    <h3 class="text-sm font-medium text-[#e2e2e9] truncate">
+                    <h3 class="text-sm font-medium text-on-surface truncate">
                       {{ app.name || app.package }}
                     </h3>
-                    <p class="text-xs text-[#c4c6d0] truncate mt-0.5">
+                    <p class="text-xs text-on-surface-variant truncate mt-1">
                       {{ app.package }}
                     </p>
-                    <div class="flex items-center gap-1.5 mt-1.5">
-                      <span class="inline-flex items-center bg-[#234475] text-[#d6e3ff] rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase">
-                        {{ t('games_page.badges.tweak_enabled') }}
+                    <div class="flex items-center gap-1 mt-1">
+                      <span class="inline-flex items-center bg-primary rounded-sm px-1.5 py-0.5">
+                        <span class="text-[10px] text-on-primary font-semibold uppercase">
+                          {{ t('games_page.badges.tweak_enabled') }}
+                        </span>
                       </span>
-                      <span v-if="app.dnd" class="inline-flex items-center bg-indigo-500/20 text-indigo-300 rounded px-1.5 py-0.5 text-[10px] font-semibold">
-                        DND
+                      <span
+                        v-if="app.liteMode"
+                        class="inline-flex items-center bg-tertiary rounded-sm px-1.5 py-0.5"
+                      >
+                        <span class="text-[10px] text-on-tertiary font-semibold uppercase">
+                          Lite
+                        </span>
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div class="w-7 h-7 rounded-full bg-[#191b20] flex items-center justify-center shrink-0 ms-3">
-                  <ChevronRight class="text-[#c4c6d0] w-4 h-4 shrink-0" />
+                <div class="w-7 h-7 rounded-full bg-surface-dim flex items-center justify-center shrink-0 ms-3">
+                  <ChevronRightIcon class="text-on-surface-variant shrink-0 rtl:rotate-180" :size="22" />
                 </div>
               </div>
             </RippleComponent>
           </div>
-        </div>
 
-        <div v-else class="text-center py-10 text-[#c4c6d0] text-xs">
-          <p>{{ t('games_page.no_apps_found') }}</p>
+          <div
+            v-if="filteredGames.length === 0 && !gamesStore.isLoading"
+            class="text-center py-8 text-on-surface-variant"
+          >
+            <p>{{ t('games_page.no_apps_found') }}</p>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Modal Add Game -->
-    <Modal :isOpen="isAddModalOpen" @close="isAddModalOpen = false" :title="t('games_page.select_app')">
-      <div class="space-y-3">
+    <Modal :show="isAddModalOpen" :title="t('games_page.select_app')" @close="isAddModalOpen = false">
+      <div class="px-4 pb-2 space-y-3">
         <input
           v-model="installedAppSearch"
           type="text"
-          placeholder="Cari aplikasi..."
-          class="w-full bg-[#111318] border border-white/10 rounded-xl py-2 px-3 text-xs text-[#e2e2e9] placeholder-[#8e9099] focus:outline-none focus:border-[#a8c7fa]"
+          :placeholder="t('games_page.search_placeholder')"
+          class="w-full bg-surface-container border border-outline/20 rounded-xl py-2 px-3 text-xs text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary"
         />
 
         <div class="max-h-64 overflow-y-auto space-y-1.5 pr-1 scrollbar-hidden">
           <div
             v-for="app in filteredInstalledApps"
             :key="app.package"
-            class="flex items-center justify-between p-2.5 rounded-xl bg-[#191b20] border border-white/5 hover:bg-[#23242a] transition-all"
+            class="flex items-center justify-between p-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high transition-all"
           >
             <div class="flex items-center gap-2.5 min-w-0 flex-1">
-              <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
-                <img v-if="app.icon" :src="app.icon" :alt="app.name" class="w-full h-full object-cover" />
-                <Package v-else class="w-4 h-4 text-slate-400" />
+              <img
+                v-if="app.icon"
+                :src="app.icon"
+                :alt="app.name"
+                class="w-8 h-8 rounded-full object-cover shrink-0"
+              />
+              <div
+                v-else
+                class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center shrink-0"
+              >
+                <GamesIcon class="w-4 h-4 text-on-primary-container" />
               </div>
+
               <div class="min-w-0 flex-1">
-                <div class="text-xs font-bold text-[#e2e2e9] truncate">{{ app.name }}</div>
-                <div class="text-[10px] text-[#c4c6d0] font-mono truncate">{{ app.package }}</div>
+                <div class="text-xs font-medium text-on-surface truncate">{{ app.name }}</div>
+                <div class="text-[10px] text-on-surface-variant font-mono truncate">{{ app.package }}</div>
               </div>
             </div>
 
             <button
               @click="addApp(app)"
-              class="px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0 transition-colors"
+              class="px-3 py-1 rounded-full text-xs font-medium shrink-0 transition-colors"
               :class="isAlreadyAdded(app.package)
-                ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                : 'bg-[#a8c7fa] text-[#04305f] hover:bg-[#82b1ff]'"
+                ? 'bg-surface-container-highest text-on-surface-variant cursor-not-allowed'
+                : 'bg-primary text-on-primary hover:bg-primary/80'"
               :disabled="isAlreadyAdded(app.package)"
             >
               {{ isAlreadyAdded(app.package) ? 'Ditambahkan' : 'Pilih' }}
@@ -129,11 +160,16 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, X, Plus, ChevronRight, Gamepad2, Package } from 'lucide-vue-next'
 import { useZenithGamesStore } from '@/stores/ZenithGames'
 import { useLocales } from '@/helpers/Locales'
+
+import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import RippleComponent from '@/components/ui/Ripple.vue'
-import Modal from '@/components/Modal.vue'
+import SearchIcon from '@/components/icons/Search.vue'
+import CloseIcon from '@/components/icons/Close.vue'
+import ChevronRightIcon from '@/components/icons/ChevronRight.vue'
+import GamesIcon from '@/components/icons/Games.vue'
+import Modal from '@/components/ui/Modal.vue'
 
 const router = useRouter()
 const gamesStore = useZenithGamesStore()
@@ -142,8 +178,10 @@ const { t } = useLocales()
 const isAddModalOpen = ref(false)
 const installedAppSearch = ref('')
 
-onMounted(() => {
-  gamesStore.loadGames()
+onMounted(async () => {
+  if (gamesStore.games.length === 0) {
+    await gamesStore.loadGames()
+  }
 })
 
 const filteredGames = computed(() => {
