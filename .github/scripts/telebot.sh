@@ -10,17 +10,26 @@ $COMMIT_MESSAGE
 "
 
 file="$1"
-thumbnail="$GITHUB_WORKSPACE/logo.jpg"
+thumbnail="$GITHUB_WORKSPACE/mainfiles/module.banner.jpg"
 
 if [ ! -f "$file" ]; then
     echo "error: File not found" >&2
     exit 1
 fi
 
-curl -s "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
-	-F document=@"$file" \
-	-F chat_id="$CHAT_ID" \
-	-F "disable_web_page_preview=true" \
-	-F "parse_mode=markdownv2" \
-	-F thumb=@"$thumbnail" \
-	-F caption="$msg"
+if [ -f "$thumbnail" ]; then
+    curl -s "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
+        -F document=@"$file" \
+        -F chat_id="$CHAT_ID" \
+        -F "disable_web_page_preview=true" \
+        -F "parse_mode=markdownv2" \
+        -F thumb=@"$thumbnail" \
+        -F caption="$msg"
+else
+    curl -s "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
+        -F document=@"$file" \
+        -F chat_id="$CHAT_ID" \
+        -F "disable_web_page_preview=true" \
+        -F "parse_mode=markdownv2" \
+        -F caption="$msg"
+fi

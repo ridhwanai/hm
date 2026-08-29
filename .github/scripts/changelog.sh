@@ -12,10 +12,11 @@ cd "$GITHUB_WORKSPACE" || {
 	exit 1
 }
 
-readonly ASSETSFOLDER="manager/app/src/main/assets/changelog.md"
 readonly CHANGELOGFILE="changelog.md"
 
 if [ -f "$CHANGELOGFILE" ]; then
-    cp "$CHANGELOGFILE" "$ASSETSFOLDER"
-    echo "✅ Success: $CHANGELOGFILE copied to $ASSETSFOLDER"
+    mkdir -p mainfiles
+    cp "$CHANGELOGFILE" "mainfiles/changelog.md" 2>/dev/null || true
+    [ -d "webui/public" ] && cp "$CHANGELOGFILE" "webui/public/changelog.md" 2>/dev/null || true
+    echo "✅ Success: $CHANGELOGFILE copied to module assets"
 fi
