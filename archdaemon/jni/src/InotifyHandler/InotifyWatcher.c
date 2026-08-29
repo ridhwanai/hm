@@ -81,6 +81,7 @@ static void handle_background_apps_event(void) {
                     free(active_app_name);
                     active_app_name = NULL;
                 }
+                game_pid_count = 0;
             }
         }
     }

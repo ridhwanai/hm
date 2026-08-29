@@ -109,16 +109,11 @@ Perbaikan:
   get_pids_of() kosong dan aplikasi fokus sama dengan aplikasi target.
 - Retry kini punya jeda nyata usleep(120000), bukan terbakar instan.
 
-### 2. Lambat kembali ke profil default setelah aplikasi ditutup
-Penyebab: di blok need_profile_checkup, saat get_gamestart() mengembalikan NULL,
-daemon hanya menyetel need_profile_checkup = false tanpa membersihkan gamestart.
-Karena gamestart masih terisi, cabang di bawahnya terus masuk ke jalur
-Performance. Profil baru turun setelah handle_background_apps_event() melihat PID
-hilang, yaitu setelah Android benar-benar mematikan cached process.
-
-Perbaikan: bila fokus sudah pindah ke aplikasi lain, gamestart, active_app_name,
-game_pid_count, pid_retries, has_applied_renderer, dan grace_period_active
-langsung direset sehingga Balanced diterapkan seketika.
+### 2. Siklus hidup profil game (Minimize vs Tutup dari Recent Apps)
+Perilaku dynamic profiling:
+- **Game Dibuka (Foreground)**: daemon mendeteksi game (mis. Mobile Legends) dan langsung beralih ke Performance Mode.
+- **Game Di-minimize (Recent Apps)**: daemon memeriksa apakah proses game masih terdaftar di `background_apps` (Recent Tasks). Selama game masih hidup di Recent Apps, mode Performance **tetap dipertahankan**.
+- **Game Ditutup / Dihapus dari Recent Apps**: saat game di-swipe dari Recent Tasks atau di-force stop, daemon mendeteksi `get_pids_of()` menjadi 0, melepaskan `gamestart`, dan otomatis mengembalikan profil ke Balanced.
 
 ### 3. Deteksi pergantian aplikasi (manager)
 AppMonitor.kt:

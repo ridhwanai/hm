@@ -19,13 +19,21 @@ binutils/target/
 thermalcore/target/
 preloadbin/target/
 
+# WebUI
+webui/node_modules/
+webui/dist/
+node_modules/
+dist/
+.vite/
+
 # Output paket
 out/
 *.zip
 
-# Sampah OS / editor
+# Sampah OS / editor / log
 .DS_Store
 Thumbs.db
 *.swp
 *~
 .vscode/
+*.log

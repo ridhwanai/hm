@@ -1,4 +1,4 @@
-name: AZenith
+name: AZenith WebUI
 
 on:
   pull_request:
@@ -11,9 +11,10 @@ on:
     paths:
       - ".github/workflows/build.yml"
       - ".github/scripts/**"
-      - "manager/**"
+      - "webui/**"
       - "archdaemon/**"
-      - "tweakfls/**"
+      - "binprofiles/**"
+      - "binutils/**"
       - "mainfiles/**"
       - "azenithApplist.json"
       - "version"
@@ -25,7 +26,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build AZenith
+    name: Build AZenith WebUI Flashable
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -42,7 +43,6 @@ jobs:
       - name: Determine Build Type
         id: build_type
         run: |
-          # Membaca isi file dan menghapus spasi/newline tersembunyi
           V_TYPE=$(cat version_type | tr -d '\n\r ')
           echo "V_TYPE=$V_TYPE" >> $GITHUB_ENV
           echo "Build mode set to: $V_TYPE"
@@ -87,24 +87,17 @@ jobs:
             cargo ndk -t arm64-v8a build --release
           fi
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v5
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          java-version: "17"
-          distribution: temurin
+          node-version: 22
 
-      - name: Build Manager APK
-        working-directory: ./manager
+      - name: Build WebUI
+        working-directory: ./webui
         run: |
-          chmod +x ./gradlew
-          if [ "$V_TYPE" == "experimental" ]; then
-            ./gradlew clean assembleDebug
-          else
-            ./gradlew clean assembleRelease
-          fi
-        env:
-          KS_PWD: ${{ secrets.KEYSTORE_PASSWORD }}
-                    
+          npm ci || npm install
+          npm run build
+
       - name: Compile Flashable Zip
         id: compileZip
         run: bash .github/scripts/compile_zip.sh
@@ -116,7 +109,7 @@ jobs:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           COMMIT_URL: ${{ github.event.head_commit.url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          TITLE: AZenith
+          TITLE: AZenith WebUI
         run: |
           if [ -n "$CHAT_ID" ] && [ -n "$BOT_TOKEN" ]; then
             export VERSION=$(git rev-list --count HEAD)
