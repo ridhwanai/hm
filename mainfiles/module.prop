@@ -1,7 +1,7 @@
-id=AZenith
-name=AZenith WebUI Remake
+id=wann
+name=Wann Optimizer
 version=v5.1-WebUI (RN9)
 versionCode=511
-author=wann (fork dari ArchHaven Developers)
-description=Universal dynamic performance optimizer with modern minimalist WebUI. Tuned for Helio G85 & universal ARM64: Dynamic gaming performance, Memory/ZRAM tuning, Screen-off ECO hibernation, and FSTRIM.
+author=wann
+description=Universal dynamic performance engine with modern Material Design 3 WebUI. Tuned for Helio G85 & universal ARM64: Dynamic gaming performance, Memory/ZRAM tuning, Screen-off ECO hibernation, and Storage Maintenance.
 banner=module.banner.avif

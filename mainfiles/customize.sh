@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2026-2027 Zexshia & wann
+# Copyright (C) 2026-2027 wann
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ abort_api() {
   echo ""
   echo "! Installation Aborted"
   echo "! Unsupported Android Version Detected"
-  echo "! AZenith requires Android 10 (API 29) or newer."
+  echo "! Wann requires Android 10 (API 29) or newer."
   abort "! Your device is currently running API $API_LEVEL."
 }
 
@@ -36,7 +36,7 @@ abort_corrupted() {
   clear
   echo ""
   echo "! Installation Aborted"
-  echo "! The AZenith package appears to be corrupted or incomplete."
+  echo "! The Wann package appears to be corrupted or incomplete."
   echo "! Required installation files were not found."
   echo ""
   abort "! Please re-download the module and try again."
@@ -46,24 +46,25 @@ abort_arch() {
   clear
   echo "! Installation Aborted"
   echo "! Unsupported CPU Architecture Detected"
-  echo "! Your device architecture is not compatible with this build of AZenith."
+  echo "! Your device architecture is not compatible with this build of Wann."
   echo "! Supported architectures:"
   echo "  • arm64-v8a"
   abort "  • armeabi-v7a"
 }
 
 installation_complete() {
-  echo "- AZenith WebUI Edition successfully installed"
+  echo "- Wann Optimizer successfully installed"
   echo "- Open WebUI via KernelSU / APatch / MMRL / WebUI X"
-  echo "- Thank you for using AZenith Remake!"
+  echo "- Crafted by @wann"
   echo "- Please reboot your device."
 }
 
 # Display banner
 echo ""
-echo "       AZenith WebUI Remake       "
+echo "        Wann Optimizer (MD3)       "
+echo "           Author: @wann           "
 echo ""
-echo "- Installing AZenith..."
+echo "- Installing Wann Optimizer..."
 
 # API Level Check (Require API 29+)
 [ "$API_LEVEL" -lt 29 ] && abort_api
@@ -157,13 +158,7 @@ if [ -f "$HM_CONFIG" ]; then
     fi
 
     if [ -n "$HM_BIN" ]; then
-        $HM_BIN api config-patch --patch '{"rules":{"AZenith":{"default_mode":"ignore"}}}' --apply-runtime >/dev/null 2>&1
-    fi
-
-    if ! grep -q "\[rules\.AZenith\]" "$HM_CONFIG"; then
-        echo "" >> "$HM_CONFIG"
-        echo "[rules.AZenith]" >> "$HM_CONFIG"
-        echo 'default_mode = "ignore"' >> "$HM_CONFIG"
+        $HM_BIN api config-patch --patch '{"rules":{"AZenith":{"default_mode":"ignore"},"wann":{"default_mode":"ignore"}}}' --apply-runtime >/dev/null 2>&1
     fi
 fi
 
@@ -171,7 +166,7 @@ fi
 if [ "$KSU" = "true" ] || [ "$APATCH" = "true" ]; then
 	touch "$MODPATH/skip_mount"
 	manager_paths="/data/adb/ap/bin /data/adb/ksu/bin"
-	BIN_PATH="/data/adb/modules/AZenith/system/bin"
+	BIN_PATH="$MODPATH/system/bin"
 	for dir in $manager_paths; do
 		[ -d "$dir" ] && {
 			ln -sf "$BIN_PATH/sys.azenith-service" "$dir/sys.azenith-service"
@@ -181,67 +176,6 @@ if [ "$KSU" = "true" ] || [ "$APATCH" = "true" ]; then
 		}
 	done
 fi
-
-# Apply Tweaks Based on Chipset
-echo "- Checking device SoC..."
-chipset=$(grep -i 'hardware' /proc/cpuinfo | uniq | cut -d ':' -f2 | sed 's/^[ \t]*//')
-[ -z "$chipset" ] && chipset="$(getprop ro.board.platform) $(getprop ro.hardware)"
-case "$(echo "$chipset" | tr '[:upper:]' '[:lower:]')" in
-*mt* | *MT*)
-	soc="MediaTek"
-	setprop persist.sys.azenith.soctype 1
-	;;
-*sm* | *qcom* | *SM* | *QCOM* | *Qualcomm* | *sdm* | *snapdragon*)
-	soc="Snapdragon"
-	setprop persist.sys.azenith.soctype 2
-	;;
-*exynos* | *Exynos* | *EXYNOS* | *universal* | *samsung* | *erd* | *s5e*)
-	soc="Exynos"
-	setprop persist.sys.azenith.soctype 3
-	;;
-*Unisoc* | *unisoc* | *ums*)
-	soc="Unisoc"
-	setprop persist.sys.azenith.soctype 4
-	;;
-*gs* | *Tensor* | *tensor*)
-	soc="Tensor"
-	setprop persist.sys.azenith.soctype 5
-	;;
-*)
-	soc="Unknown"
-	setprop persist.sys.azenith.soctype 0
-	;;
-esac
-
-# Set default renderer
-if [ -z "$(getprop persist.sys.azenithconf.renderer)" ]; then
-	setprop persist.sys.azenithconf.renderer "skiaglthreaded"
-fi
-
-# Daemon Configurations
-if [ -z "$(getprop persist.sys.azenithconf.showtoast)" ]; then
-	setprop persist.sys.azenithconf.showtoast 1
-fi
-
-if [ -z "$(getprop persist.sys.azenithconf.AIenabled)" ]; then
-    setprop persist.sys.azenithconf.AIenabled 1
-    echo 1 > "$MODULE_CONFIG/API/current_modes"
-fi
-
-setprop persist.sys.azenith.debugmode "false"
-
-# Set config properties
-props="
-persist.sys.azenithconf.logd
-persist.sys.azenithconf.cpulimit
-persist.sys.azenithconf.dnd
-"
-for prop in $props; do
-	curval=$(getprop "$prop")
-	if [ -z "$curval" ]; then
-		setprop "$prop" 0
-	fi
-done
 
 # Permissions
 set_perm_recursive "$MODPATH/system/bin" 0 0 0755 0755
@@ -253,7 +187,7 @@ set_perm "$MODPATH/service.sh" 0 0 0755
 set_perm "$MODPATH/post-fs-data.sh" 0 0 0755
 set_perm "$MODPATH/uninstall.sh" 0 0 0755
 
-# RN9 Defaults
+# Defaults
 ECO_DIR="/data/adb/.config/AZenith/eco"
 mkdir -p "$ECO_DIR"
 [ -f "$ECO_DIR/enabled" ] || echo 1 > "$ECO_DIR/enabled"

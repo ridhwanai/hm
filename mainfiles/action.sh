@@ -1,7 +1,7 @@
 #!/system/bin/sh
 
 #
-# Copyright (C) 2026-2027 Zexshia & wann
+# Copyright (C) 2026-2027 wann
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,26 +16,28 @@
 # limitations under the License.
 #
 
+MOD_NAME="wann"
+
 if [ -n "$MMRL" ]; then
 	echo "- This action script is not intended to run directly in MMRL."
-	echo "- Please open AZenith WebUI by clicking the module card in the manager."
+	echo "- Please open Wann WebUI by clicking the module card in the manager."
 	exit 0
 fi
 
 if [ -n "$MAGISKTMP" ]; then
 	pm path com.dergoogler.mmrl.wx >/dev/null 2>&1 && {
-		echo "- Launching AZenith WebUI in WebUI X..."
-		am start -n "com.dergoogler.mmrl.wx/.ui.activity.webui.WebUIActivity" -e MOD_ID "AZenith"
+		echo "- Launching Wann WebUI in WebUI X..."
+		am start -n "com.dergoogler.mmrl.wx/.ui.activity.webui.WebUIActivity" -e MOD_ID "$MOD_NAME"
 		exit 0
 	}
 	pm path com.dergoogler.mmrl.webuix >/dev/null 2>&1 && {
-		echo "- Launching AZenith WebUI in WebUI X..."
-		am start -n "com.dergoogler.mmrl.webuix/.ui.activity.webui.WebUIActivity" -e MOD_ID "AZenith"
+		echo "- Launching Wann WebUI in WebUI X..."
+		am start -n "com.dergoogler.mmrl.webuix/.ui.activity.webui.WebUIActivity" -e MOD_ID "$MOD_NAME"
 		exit 0
 	}
 	pm path io.github.a13e300.ksuwebui >/dev/null 2>&1 && {
-		echo "- Launching AZenith WebUI in KSUWebUIStandalone..."
-		am start -n "io.github.a13e300.ksuwebui/.WebUIActivity" -e id "AZenith"
+		echo "- Launching Wann WebUI in KSUWebUIStandalone..."
+		am start -n "io.github.a13e300.ksuwebui/.WebUIActivity" -e id "$MOD_NAME"
 		exit 0
 	}
 fi

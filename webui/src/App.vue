@@ -1,23 +1,47 @@
 <template>
-  <div class="h-screen flex flex-col justify-between bg-[#111318] text-[#e2e2e9] overflow-hidden">
-    <!-- Main Content View -->
-    <main class="flex-1 overflow-hidden relative">
-      <DashboardView v-if="activeTab === 'home'" />
-      <GamesView v-else-if="activeTab === 'games'" />
-      <TweaksView v-else-if="activeTab === 'settings'" />
+  <div id="app" class="min-h-screen flex flex-col bg-[#111318] text-[#e2e2e9] overflow-hidden">
+    <main class="main-content flex-1 md:ml-20 overflow-hidden relative">
+      <router-view v-slot="{ Component, route }">
+        <transition :name="transitionName">
+          <keep-alive>
+            <component :is="Component" :key="route.path" />
+          </keep-alive>
+        </transition>
+      </router-view>
     </main>
 
-    <!-- Bottom Navigation Bar -->
-    <Navbar v-model:activeTab="activeTab" />
+    <Navigation />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import Navbar from '@/components/Navbar.vue'
-import DashboardView from '@/views/DashboardView.vue'
-import GamesView from '@/views/GamesView.vue'
-import TweaksView from '@/views/TweaksView.vue'
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import Navigation from '@/components/ui/Navigation.vue'
 
-const activeTab = ref('home')
+const route = useRoute()
+const transitionName = ref('')
+
+const topLevelRoutes = ['/', '/games', '/settings']
+
+watch(
+  () => route.path,
+  (to, from) => {
+    if (topLevelRoutes.includes(to) && topLevelRoutes.includes(from)) {
+      transitionName.value = ''
+      return
+    }
+
+    const isOpeningChild = to.startsWith(from === '/' ? '' : from) && to.length > from.length
+    const isClosingChild = from.startsWith(to === '/' ? '' : to) && from.length > to.length
+
+    if (isOpeningChild) {
+      transitionName.value = 'page-open'
+    } else if (isClosingChild) {
+      transitionName.value = 'page-close'
+    } else {
+      transitionName.value = ''
+    }
+  },
+)
 </script>
