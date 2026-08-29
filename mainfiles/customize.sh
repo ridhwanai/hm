@@ -143,7 +143,11 @@ fi
 [ -f "$MODULE_CONFIG/gamelist/azenithApplist.json" ] || ln -sf "$MODULE_CONFIG/gamelist/wannApplist.json" "$MODULE_CONFIG/gamelist/azenithApplist.json" 2>/dev/null
 
 echo "- Extracting module banner..."
-extract "$ZIPFILE" module.banner.avif "$MODPATH"
+if unzip -l "$ZIPFILE" | grep -q "module.banner.png"; then
+    extract "$ZIPFILE" module.banner.png "$MODPATH"
+elif unzip -l "$ZIPFILE" | grep -q "module.banner.jpg"; then
+    extract "$ZIPFILE" module.banner.jpg "$MODPATH"
+fi
 
 # Extract WebUI files (webroot)
 echo "- Extracting WebUI interface..."

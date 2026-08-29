@@ -1,6 +1,6 @@
 {
-  "version": "5.1 (1735-d249817-Bluerose)",
-  "versionCode": "1735",
-  "zipUrl": "https://github.com/Liliya2727/AZenith/releases/download/AZenith-5.1/AZenith-5.1-1735-d249817-Bluerose.zip",
-  "changelog": "https://raw.githubusercontent.com/Liliya2727/AZenith/refs/heads/main/changelog.md"
+  "version": "5.1-WebUI",
+  "versionCode": "511",
+  "zipUrl": "https://github.com/ridhwanai/hm/releases/latest/download/Wann-WebUI-v5.1.zip",
+  "changelog": "https://raw.githubusercontent.com/ridhwanai/hm/main/changelog.md"
 }

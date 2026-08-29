@@ -23,7 +23,7 @@ need_integrity=(
 	"mainfiles/action.sh"
 	"mainfiles/uninstall.sh"
 	"mainfiles/module.prop"
-	"mainfiles/module.banner.avif"
+	"mainfiles/module.banner.png"
 	"mainfiles/wannApplist.json"
 	"mainfiles/wann-hibernate.sh"
 	"mainfiles/wann-memory.sh"

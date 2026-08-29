@@ -1,7 +1,7 @@
 #!/sbin/sh
 
 ###############################
-# AZenith
+# Wann Optimizer
 ###############################
 
 # Set proper permissions
@@ -38,7 +38,7 @@ is_legacy_script() {
 
 # Display module installation message
 print_modname() {
-  ui_print "- Installing Antares Performance Module..."
+  ui_print "- Installing Wann Optimizer..."
 }
 
 ###############################

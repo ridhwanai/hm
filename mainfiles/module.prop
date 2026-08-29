@@ -4,4 +4,4 @@ version=v5.1-WebUI (RN9)
 versionCode=511
 author=wann
 description=Universal dynamic performance engine with modern Material Design 3 WebUI. Tuned for Helio G85 & universal ARM64: Dynamic gaming performance, Memory/ZRAM tuning, Screen-off ECO hibernation, and Storage Maintenance.
-banner=module.banner.avif
+banner=module.banner.png
