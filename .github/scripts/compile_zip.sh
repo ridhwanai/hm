@@ -24,10 +24,10 @@ need_integrity=(
 	"mainfiles/uninstall.sh"
 	"mainfiles/module.prop"
 	"mainfiles/module.banner.avif"
-	"mainfiles/azenithApplist.json"
-	"mainfiles/azenith-hibernate.sh"
-	"mainfiles/azenith-memory.sh"
-	"mainfiles/azenith-fstrim.sh"
+	"mainfiles/wannApplist.json"
+	"mainfiles/wann-hibernate.sh"
+	"mainfiles/wann-memory.sh"
+	"mainfiles/wann-fstrim.sh"
 	"mainfiles/webroot"
 )
 
@@ -64,12 +64,12 @@ if [ -d "webui/dist" ]; then
 fi
 
 # Other Files
-cp azenithApplist.json mainfiles/
+cp wannApplist.json mainfiles/ 2>/dev/null || cp azenithApplist.json mainfiles/wannApplist.json 2>/dev/null
 cp LICENSE mainfiles/ 2>/dev/null
 cp NOTICE.md mainfiles/ 2>/dev/null
 
 # Parse version info to module prop
-zipName="AZenith-WebUI-$version-$release_code.zip"
+zipName="Wann-WebUI-$version-$release_code.zip"
 echo "zipName=$zipName" >>"$GITHUB_OUTPUT"
 artifactName="${zipName%.zip}"
 echo "artifactName=$artifactName" >>"$GITHUB_OUTPUT"
@@ -88,6 +88,6 @@ cd ./mainfiles || {
 zip -r9 ../"$zipName" * -x *placeholder* *.map .shellcheckrc
 zip -z ../"$zipName" <<EOF
 $version-$release_code
-AZenith WebUI Remake
+Wann Optimizer (MD3 WebUI)
 Build Date $(date +"%a %b %d %H:%M:%S %Z %Y")
 EOF

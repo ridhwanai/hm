@@ -17,7 +17,8 @@
 SKIPUNZIP=1
 
 # Paths
-MODULE_CONFIG="/data/adb/.config/AZenith"
+MODULE_CONFIG="/data/adb/.config/wann"
+LEGACY_CONFIG="/data/adb/.config/AZenith"
 device_codename=$(getprop ro.product.board)
 chip=$(getprop ro.hardware)
 HM_DIR="/data/adb/hybrid-mount"
@@ -73,14 +74,15 @@ echo "- Installing Wann Optimizer..."
 mkdir -p "$MODULE_CONFIG"
 mkdir -p "$MODULE_CONFIG/debug"
 mkdir -p "$MODULE_CONFIG/API"
-mkdir -p "$MODULE_CONFIG/preload"
-mkdir -p "$MODULE_CONFIG/bypasschgconfig"
 mkdir -p "$MODULE_CONFIG/gamelist"
 mkdir -p "$MODULE_CONFIG/mem"
 mkdir -p "$MODULE_CONFIG/eco"
 mkdir -p "$MODULE_CONFIG/maint"
 mkdir -p "$MODPATH/system/bin"
 mkdir -p "$MODPATH/webroot"
+
+# Compatibility symlink for legacy paths
+[ -d "$LEGACY_CONFIG" ] || ln -sf "$MODULE_CONFIG" "$LEGACY_CONFIG" 2>/dev/null
 echo "- Initialized module config directories"
 
 # Flashable integrity checkup
@@ -108,12 +110,12 @@ echo "- All binaries installed successfully"
 echo "- Extracting service.sh..."
 extract "$ZIPFILE" service.sh "$MODPATH"
 echo "- Extracting helper scripts..."
-extract "$ZIPFILE" azenith-hibernate.sh "$MODPATH"
-[ -f "$MODPATH/azenith-hibernate.sh" ] || abort_corrupted
-extract "$ZIPFILE" azenith-memory.sh "$MODPATH"
-[ -f "$MODPATH/azenith-memory.sh" ] || abort_corrupted
-extract "$ZIPFILE" azenith-fstrim.sh "$MODPATH"
-[ -f "$MODPATH/azenith-fstrim.sh" ] || abort_corrupted
+extract "$ZIPFILE" wann-hibernate.sh "$MODPATH"
+[ -f "$MODPATH/wann-hibernate.sh" ] || abort_corrupted
+extract "$ZIPFILE" wann-memory.sh "$MODPATH"
+[ -f "$MODPATH/wann-memory.sh" ] || abort_corrupted
+extract "$ZIPFILE" wann-fstrim.sh "$MODPATH"
+[ -f "$MODPATH/wann-fstrim.sh" ] || abort_corrupted
 echo "- Helper scripts installed"
 
 echo "- Extracting post-fs-data.sh..."
@@ -128,10 +130,17 @@ cp "$MODPATH/module.prop" "$MODPATH/module.prop.orig"
 echo "- Extracting uninstall.sh..."
 extract "$ZIPFILE" uninstall.sh "$MODPATH"
 
-if [ ! -f "$MODULE_CONFIG/gamelist/azenithApplist.json" ]; then
+if [ ! -f "$MODULE_CONFIG/gamelist/wannApplist.json" ]; then
     echo "- Extracting default gamelist..."
-    extract "$ZIPFILE" azenithApplist.json "$MODULE_CONFIG/gamelist"
+    if unzip -l "$ZIPFILE" | grep -q "wannApplist.json"; then
+        extract "$ZIPFILE" wannApplist.json "$MODULE_CONFIG/gamelist"
+    elif unzip -l "$ZIPFILE" | grep -q "azenithApplist.json"; then
+        extract "$ZIPFILE" azenithApplist.json "$MODULE_CONFIG/gamelist"
+        mv "$MODULE_CONFIG/gamelist/azenithApplist.json" "$MODULE_CONFIG/gamelist/wannApplist.json" 2>/dev/null
+    fi
 fi
+# Compatibility symlink
+[ -f "$MODULE_CONFIG/gamelist/azenithApplist.json" ] || ln -sf "$MODULE_CONFIG/gamelist/wannApplist.json" "$MODULE_CONFIG/gamelist/azenithApplist.json" 2>/dev/null
 
 echo "- Extracting module banner..."
 extract "$ZIPFILE" module.banner.avif "$MODPATH"
@@ -158,7 +167,7 @@ if [ -f "$HM_CONFIG" ]; then
     fi
 
     if [ -n "$HM_BIN" ]; then
-        $HM_BIN api config-patch --patch '{"rules":{"AZenith":{"default_mode":"ignore"},"wann":{"default_mode":"ignore"}}}' --apply-runtime >/dev/null 2>&1
+        $HM_BIN api config-patch --patch '{"rules":{"wann":{"default_mode":"ignore"},"AZenith":{"default_mode":"ignore"}}}' --apply-runtime >/dev/null 2>&1
     fi
 fi
 
@@ -179,16 +188,16 @@ fi
 
 # Permissions
 set_perm_recursive "$MODPATH/system/bin" 0 0 0755 0755
-set_perm "$MODPATH/azenith-hibernate.sh" 0 0 0755
-set_perm "$MODPATH/azenith-memory.sh" 0 0 0755
-set_perm "$MODPATH/azenith-fstrim.sh" 0 0 0755
+set_perm "$MODPATH/wann-hibernate.sh" 0 0 0755
+set_perm "$MODPATH/wann-memory.sh" 0 0 0755
+set_perm "$MODPATH/wann-fstrim.sh" 0 0 0755
 set_perm "$MODPATH/action.sh" 0 0 0755
 set_perm "$MODPATH/service.sh" 0 0 0755
 set_perm "$MODPATH/post-fs-data.sh" 0 0 0755
 set_perm "$MODPATH/uninstall.sh" 0 0 0755
 
 # Defaults
-ECO_DIR="/data/adb/.config/AZenith/eco"
+ECO_DIR="$MODULE_CONFIG/eco"
 mkdir -p "$ECO_DIR"
 [ -f "$ECO_DIR/enabled" ] || echo 1 > "$ECO_DIR/enabled"
 [ -f "$ECO_DIR/delay" ] || echo 300 > "$ECO_DIR/delay"
@@ -207,7 +216,7 @@ HIBEOF
 fi
 
 # Memory defaults
-MEM_DIR="/data/adb/.config/AZenith/mem"
+MEM_DIR="$MODULE_CONFIG/mem"
 mkdir -p "$MEM_DIR"
 [ -f "$MEM_DIR/enabled" ] || echo 1 > "$MEM_DIR/enabled"
 [ -f "$MEM_DIR/zram_mb" ] || echo 2048 > "$MEM_DIR/zram_mb"
@@ -215,7 +224,7 @@ mkdir -p "$MEM_DIR"
 [ -f "$MEM_DIR/algo" ] || echo lz4 > "$MEM_DIR/algo"
 
 # FSTRIM defaults
-MAINT_DIR="/data/adb/.config/AZenith/maint"
+MAINT_DIR="$MODULE_CONFIG/maint"
 mkdir -p "$MAINT_DIR"
 [ -f "$MAINT_DIR/fstrim_enabled" ] || echo 1 > "$MAINT_DIR/fstrim_enabled"
 [ -f "$MAINT_DIR/fstrim_interval" ] || echo 86400 > "$MAINT_DIR/fstrim_interval"

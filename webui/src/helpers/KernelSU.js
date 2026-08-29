@@ -4,28 +4,28 @@ import { fileInterface, packageManagerInterface, moduleInterface } from './WXInt
 
 // In-app mock state for browser dev testing
 const mockFileSystem = {
-  '/data/adb/modules/AZenith/module.prop': 'id=AZenith\nname=AZenith WebUI Edition\nversion=v5.1-WebUI (RN9)\nversionCode=511\nauthor=wann (fork ArchHaven)',
-  '/data/adb/.config/AZenith/API/current_modes': '1',
-  '/data/adb/.config/AZenith/API/current_profile': '1',
-  '/data/adb/.config/AZenith/gamelist/azenithApplist.json': JSON.stringify({
+  '/data/adb/modules/wann/module.prop': 'id=wann\nname=Wann Optimizer\nversion=v5.1-WebUI (RN9)\nversionCode=511\nauthor=wann',
+  '/data/adb/.config/wann/API/current_modes': '1',
+  '/data/adb/.config/wann/API/current_profile': '1',
+  '/data/adb/.config/wann/gamelist/wannApplist.json': JSON.stringify({
     'com.mobile.legends': { 'dnd_on_gaming': 'true', 'renderer': 'skiaglthreaded' },
     'com.kurogame.wutheringwaves.global': { 'dnd_on_gaming': 'true', 'renderer': 'skiavkthreaded' },
     'com.HoYoverse.hkrpgoversea': { 'dnd_on_gaming': 'default', 'renderer': 'default' },
   }, null, 2),
-  '/data/adb/.config/AZenith/mem/enabled': '1',
-  '/data/adb/.config/AZenith/mem/zram_mb': '2048',
-  '/data/adb/.config/AZenith/mem/swappiness': '140',
-  '/data/adb/.config/AZenith/mem/algo': 'lz4',
-  '/data/adb/.config/AZenith/eco/enabled': '1',
-  '/data/adb/.config/AZenith/eco/delay': '300',
-  '/data/adb/.config/AZenith/eco/mode.default': 'full',
-  '/data/adb/.config/AZenith/eco/skip_charging': '1',
-  '/data/adb/.config/AZenith/eco/skip_audio': '1',
-  '/data/adb/.config/AZenith/eco/hibernate.list': 'com.facebook.katana\ncom.instagram.android\ncom.shopee.id\ncom.zhiliaoapp.musically',
-  '/data/adb/.config/AZenith/maint/fstrim_enabled': '1',
-  '/data/adb/.config/AZenith/maint/fstrim_interval': '86400',
-  '/data/adb/.config/AZenith/debug/AZenith.log': '[INFO] AZenith Service active\n[INFO] Screen-off ECO watcher active (delay: 300s)\n[INFO] ZRAM tuned to 2048 MB (lz4, swappiness 140)\n[INFO] Focused app: com.mobile.legends (Performance profile applied)\n',
-  '/data/adb/.config/AZenith/sysmon.log': '[SysMon] AppMonitor active on PID 2381\n',
+  '/data/adb/.config/wann/mem/enabled': '1',
+  '/data/adb/.config/wann/mem/zram_mb': '2048',
+  '/data/adb/.config/wann/mem/swappiness': '140',
+  '/data/adb/.config/wann/mem/algo': 'lz4',
+  '/data/adb/.config/wann/eco/enabled': '1',
+  '/data/adb/.config/wann/eco/delay': '300',
+  '/data/adb/.config/wann/eco/mode.default': 'full',
+  '/data/adb/.config/wann/eco/skip_charging': '1',
+  '/data/adb/.config/wann/eco/skip_audio': '1',
+  '/data/adb/.config/wann/eco/hibernate.list': 'com.facebook.katana\ncom.instagram.android\ncom.shopee.id\ncom.zhiliaoapp.musically',
+  '/data/adb/.config/wann/maint/fstrim_enabled': '1',
+  '/data/adb/.config/wann/maint/fstrim_interval': '86400',
+  '/data/adb/.config/wann/debug/wann.log': '[INFO] Wann Service active\n[INFO] Screen-off ECO watcher active (delay: 300s)\n[INFO] ZRAM tuned to 2048 MB (lz4, swappiness 140)\n[INFO] Focused app: com.mobile.legends (Performance profile applied)\n',
+  '/data/adb/.config/wann/sysmon.log': '[SysMon] AppMonitor active on PID 2381\n',
 }
 
 const mockInstalledApps = [
@@ -41,22 +41,22 @@ const mockInstalledApps = [
 ]
 
 export function isKSUWebUI() {
-  return typeof ksu !== 'undefined' || typeof $azenith !== 'undefined' || typeof $encore !== 'undefined'
+  return typeof ksu !== 'undefined' || typeof $wann !== 'undefined' || typeof $azenith !== 'undefined' || typeof $encore !== 'undefined'
 }
 
 export function isRunningOnWebUIX() {
-  return typeof $azenith !== 'undefined' || (typeof $encore !== 'undefined' && Object.keys($encore).length > 0)
+  return typeof $wann !== 'undefined' || typeof $azenith !== 'undefined' || (typeof $encore !== 'undefined' && Object.keys($encore).length > 0)
 }
 
 export async function exec(command) {
   if (!isKSUWebUI()) {
     console.log(`[Mock exec] ${command}`)
-    if (command.includes('pidof sys.azenith-service')) return { errno: 0, stdout: '4192\n', stderr: '' }
+    if (command.includes('pidof sys.azenith-service') || command.includes('pidof sys.wann-service')) return { errno: 0, stdout: '4192\n', stderr: '' }
     if (command.includes('getprop ro.board.platform')) return { errno: 0, stdout: 'mt6769z (Helio G85)\n', stderr: '' }
     if (command.includes('uname -r -m')) return { errno: 0, stdout: '4.14.336-zenith aarch64\n', stderr: '' }
     if (command.includes('getprop ro.build.version.sdk')) return { errno: 0, stdout: '33\n', stderr: '' }
     if (command.includes('fstrim')) return { errno: 0, stdout: '/data: 1.2 GiB trimmed\n/cache: 120 MiB trimmed\n', stderr: '' }
-    if (command.includes('azenith-memory.sh apply-now')) return { errno: 0, stdout: 'ZRAM: 2048 MB, swappiness: 140 [OK]\n', stderr: '' }
+    if (command.includes('wann-memory.sh apply-now') || command.includes('azenith-memory.sh apply-now')) return { errno: 0, stdout: 'ZRAM: 2048 MB, swappiness: 140 [OK]\n', stderr: '' }
     if (command.includes('pm list packages -3')) {
       return { errno: 0, stdout: mockInstalledApps.map(a => `package:${a.packageName}`).join('\n'), stderr: '' }
     }
@@ -113,10 +113,10 @@ export function toast(message) {
 
 let toastTimeout = null
 function showBrowserToast(msg) {
-  let toastEl = document.getElementById('azenith-toast')
+  let toastEl = document.getElementById('wann-toast')
   if (!toastEl) {
     toastEl = document.createElement('div')
-    toastEl.id = 'azenith-toast'
+    toastEl.id = 'wann-toast'
     toastEl.style.cssText = `
       position: fixed;
       bottom: 84px;

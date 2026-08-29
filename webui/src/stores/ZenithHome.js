@@ -2,8 +2,10 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import * as KernelSU from '@/helpers/KernelSU'
 
-const CONFIG_PATH = '/data/adb/.config/AZenith'
-const MOD_PATH = '/data/adb/modules/AZenith'
+const CONFIG_PATH = '/data/adb/.config/wann'
+const LEGACY_CONFIG_PATH = '/data/adb/.config/AZenith'
+const MOD_PATH = '/data/adb/modules/wann'
+const LEGACY_MOD_PATH = '/data/adb/modules/AZenith'
 
 export const useZenithHomeStore = defineStore('zenithHome', () => {
   const daemonStatus = ref('loading') // 'running' | 'stopped' | 'loading'
@@ -54,7 +56,8 @@ export const useZenithHomeStore = defineStore('zenithHome', () => {
 
   async function fetchProfile() {
     try {
-      const modeStr = await KernelSU.readFile(`${CONFIG_PATH}/API/current_profile`)
+      let modeStr = await KernelSU.readFile(`${CONFIG_PATH}/API/current_profile`)
+      if (!modeStr) modeStr = await KernelSU.readFile(`${LEGACY_CONFIG_PATH}/API/current_profile`)
       const trimmed = modeStr.trim()
       if (trimmed === '1' || trimmed.toLowerCase() === 'performance') {
         currentProfile.value = 'performance'
@@ -70,7 +73,8 @@ export const useZenithHomeStore = defineStore('zenithHome', () => {
 
   async function fetchAutoMode() {
     try {
-      const modes = await KernelSU.readFile(`${CONFIG_PATH}/API/current_modes`)
+      let modes = await KernelSU.readFile(`${CONFIG_PATH}/API/current_modes`)
+      if (!modes) modes = await KernelSU.readFile(`${LEGACY_CONFIG_PATH}/API/current_modes`)
       autoModeEnabled.value = modes.trim() !== '0'
     } catch {
       autoModeEnabled.value = true
@@ -81,7 +85,8 @@ export const useZenithHomeStore = defineStore('zenithHome', () => {
     autoModeEnabled.value = val
     const modeVal = val ? '1' : '0'
     await KernelSU.writeFile(`${CONFIG_PATH}/API/current_modes`, modeVal)
-    await KernelSU.exec(`setprop persist.sys.azenithconf.AIenabled ${modeVal}`)
+    await KernelSU.writeFile(`${LEGACY_CONFIG_PATH}/API/current_modes`, modeVal)
+    await KernelSU.exec(`setprop persist.sys.wannconf.AIenabled ${modeVal}; setprop persist.sys.azenithconf.AIenabled ${modeVal}`)
     KernelSU.toast(val ? 'Mode Otomatis (AI) diaktifkan' : 'Mode Otomatis dinonaktifkan (Manual)')
   }
 
@@ -92,7 +97,11 @@ export const useZenithHomeStore = defineStore('zenithHome', () => {
     if (profile === 'eco') code = '3'
 
     await KernelSU.writeFile(`${CONFIG_PATH}/API/current_profile`, code)
-    await KernelSU.exec(`[ -x ${MOD_PATH}/system/bin/sys.azenith-profilesettings ] && ${MOD_PATH}/system/bin/sys.azenith-profilesettings setprofile ${code}`)
+    await KernelSU.writeFile(`${LEGACY_CONFIG_PATH}/API/current_profile`, code)
+    await KernelSU.exec(`
+      [ -x ${MOD_PATH}/system/bin/sys.azenith-profilesettings ] && ${MOD_PATH}/system/bin/sys.azenith-profilesettings setprofile ${code} || \
+      [ -x ${LEGACY_MOD_PATH}/system/bin/sys.azenith-profilesettings ] && ${LEGACY_MOD_PATH}/system/bin/sys.azenith-profilesettings setprofile ${code}
+    `)
     KernelSU.toast(`Profil beralih ke ${profile.toUpperCase()}`)
   }
 
@@ -116,7 +125,8 @@ export const useZenithHomeStore = defineStore('zenithHome', () => {
 
   async function fetchModuleVersion() {
     try {
-      const prop = await KernelSU.readFile(`${MOD_PATH}/module.prop`)
+      let prop = await KernelSU.readFile(`${MOD_PATH}/module.prop`)
+      if (!prop) prop = await KernelSU.readFile(`${LEGACY_MOD_PATH}/module.prop`)
       const match = prop.match(/^version=(.*)$/m)
       if (match) {
         moduleVersion.value = match[1].trim()
@@ -128,7 +138,6 @@ export const useZenithHomeStore = defineStore('zenithHome', () => {
 
   function startMonitoring() {
     stopMonitoring()
-    // Lightweight file polling every 3 seconds
     monitorInterval = setInterval(() => {
       fetchProfile()
     }, 3000)

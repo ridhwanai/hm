@@ -1,10 +1,11 @@
 # Third Party Notices
 
-This project, AZenith, incorporates code and functionality from the following open source projects.
+This project, **Wann Optimizer**, incorporates code and functionality from the following open source projects:
 
-## AZenith (Apache License 2.0)
-AZenith is licensed under the Apache License, Version 2.0.
+## Wann Optimizer & AZenith Engine (Apache License 2.0)
+Wann Optimizer is licensed under the Apache License, Version 2.0.
 
+Copyright (C) 2026-2027 wann (@wann)
 Copyright (C) 2025-2026 Zexshia
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -90,4 +91,4 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
-This file must be included with all distributions of AZenith.
+This file must be included with all distributions of Wann Optimizer.

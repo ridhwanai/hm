@@ -1,4 +1,4 @@
-name: AZenith WebUI
+name: Wann Optimizer WebUI
 
 on:
   pull_request:
@@ -16,7 +16,7 @@ on:
       - "binprofiles/**"
       - "binutils/**"
       - "mainfiles/**"
-      - "azenithApplist.json"
+      - "wannApplist.json"
       - "version"
       - "version_type"
 
@@ -26,7 +26,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build AZenith WebUI Flashable
+    name: Build Wann WebUI Flashable
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -69,7 +69,7 @@ jobs:
       - name: Install cargo-ndk
         run: cargo install cargo-ndk
 
-      - name: Compile AZenith Profilesettings
+      - name: Compile Wann Profilesettings
         working-directory: ./binprofiles
         run: |
           if [ "$V_TYPE" == "experimental" ]; then
@@ -78,7 +78,7 @@ jobs:
             cargo ndk -t arm64-v8a build --release
           fi
 
-      - name: Compile AZenith Utility
+      - name: Compile Wann Utility
         working-directory: ./binutils
         run: |
           if [ "$V_TYPE" == "experimental" ]; then
@@ -109,7 +109,7 @@ jobs:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           COMMIT_URL: ${{ github.event.head_commit.url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          TITLE: AZenith WebUI
+          TITLE: Wann WebUI
         run: |
           if [ -n "$CHAT_ID" ] && [ -n "$BOT_TOKEN" ]; then
             export VERSION=$(git rev-list --count HEAD)

@@ -1,7 +1,7 @@
 #!/system/bin/sh
 
 #
-# Copyright (C) 2026-2027 Zexshia
+# Copyright (C) 2026-2027 wann
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,11 +17,10 @@
 #
 
 readonly MODDIR="${0%/*}"
-PERSISTENT_DIR="/data/adb/.config/AZenith"
-LOCK_FILE="/dev/.azenithSingleInstance"
+PERSISTENT_DIR="/data/adb/.config/wann"
+LOCK_FILE="/dev/.wannSingleInstance"
 
 # Single Instance Lock
-# Ksu in Metamodule mode, post-fs-data runs twice
 if [ -f "$LOCK_FILE" ]; then
     exit 0
 fi
@@ -46,7 +45,6 @@ else
     if [ -f "$MODDIR/module.prop.orig" ]; then
         cp -f "$MODDIR/module.prop.orig" "$MODDIR/module.prop"
     fi
-    
 fi
 
 exit 0

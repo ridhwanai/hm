@@ -1,3 +1,13 @@
+## Wann Optimizer 5.1 (MD3 WebUI Edition)
+### • Changelog
+- **Full Module Rebrand**: Rebranded all systems, scripts, daemons, and metadata to **Wann Optimizer** by **@wann**.
+- **Material Design 3 WebUI**: Full remake of the WebUI to match the minimalist, clean, and ultra-fast Material Design 3 (MD3) architecture (Encore-style).
+- **Eliminated Shell Flooding**: Removed background shell command polling from WebUI to prevent KernelSU ANR (Not Responding) freezes.
+- **Memory & ZRAM Tuner**: Dynamic ZRAM capacity (512MB-4GB) with LZ4/ZSTD compression and Swappiness 140.
+- **Screen-Off ECO Hibernation**: Auto-freezes idle background apps on screen lock with charging & audio exclusion checks.
+- **Storage Maintenance**: Integrated scheduled asynchronous FSTRIM.
+- **Lightweight Standalone**: Removed Java manager APK requirement in favor of integrated root WebUI.
+
 ## AZenith 5.1
 ### • Changelog
 - Fixed an issue where app Force Closed issue in Miui and HyperOS Roms

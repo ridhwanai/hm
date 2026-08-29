@@ -22,9 +22,9 @@
         <!-- Log Selector Tabs -->
         <div class="flex items-center gap-1 bg-[#1e1f25] p-1 rounded-xl border border-white/5">
           <button
-            @click="settingsStore.setLogType('azenith')"
+            @click="settingsStore.setLogType('wann')"
             class="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
-            :class="settingsStore.selectedLogType === 'azenith' ? 'bg-[#234475] text-[#d6e3ff]' : 'text-[#c4c6d0]'"
+            :class="settingsStore.selectedLogType === 'wann' ? 'bg-[#234475] text-[#d6e3ff]' : 'text-[#c4c6d0]'"
           >
             wann.log
           </button>

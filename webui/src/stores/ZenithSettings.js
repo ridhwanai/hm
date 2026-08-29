@@ -2,12 +2,14 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import * as KernelSU from '@/helpers/KernelSU'
 
-const LOG_FILE_PATH = '/data/adb/.config/AZenith/debug/AZenith.log'
-const SYSMON_LOG_PATH = '/data/adb/.config/AZenith/sysmon.log'
+const LOG_FILE_PATH = '/data/adb/.config/wann/debug/wann.log'
+const LEGACY_LOG_FILE_PATH = '/data/adb/.config/AZenith/debug/AZenith.log'
+const SYSMON_LOG_PATH = '/data/adb/.config/wann/sysmon.log'
+const LEGACY_SYSMON_LOG_PATH = '/data/adb/.config/AZenith/sysmon.log'
 
 export const useZenithSettingsStore = defineStore('zenithSettings', () => {
   const logContent = ref('')
-  const selectedLogType = ref('azenith') // 'azenith' | 'sysmon'
+  const selectedLogType = ref('wann') // 'wann' | 'sysmon'
   const isAutoRefresh = ref(false)
   const isFetchingLogs = ref(false)
 
@@ -16,8 +18,14 @@ export const useZenithSettingsStore = defineStore('zenithSettings', () => {
   async function fetchLogs() {
     isFetchingLogs.value = true
     try {
-      const targetPath = selectedLogType.value === 'azenith' ? LOG_FILE_PATH : SYSMON_LOG_PATH
-      const content = await KernelSU.readFile(targetPath)
+      let content = ''
+      if (selectedLogType.value === 'wann') {
+        content = await KernelSU.readFile(LOG_FILE_PATH)
+        if (!content) content = await KernelSU.readFile(LEGACY_LOG_FILE_PATH)
+      } else {
+        content = await KernelSU.readFile(SYSMON_LOG_PATH)
+        if (!content) content = await KernelSU.readFile(LEGACY_SYSMON_LOG_PATH)
+      }
       logContent.value = content || 'Log masih kosong.'
     } catch {
       logContent.value = 'Gagal memuat file log.'
@@ -28,8 +36,10 @@ export const useZenithSettingsStore = defineStore('zenithSettings', () => {
 
   async function clearLogs() {
     try {
-      const targetPath = selectedLogType.value === 'azenith' ? LOG_FILE_PATH : SYSMON_LOG_PATH
+      const targetPath = selectedLogType.value === 'wann' ? LOG_FILE_PATH : SYSMON_LOG_PATH
+      const legacyPath = selectedLogType.value === 'wann' ? LEGACY_LOG_FILE_PATH : LEGACY_SYSMON_LOG_PATH
       await KernelSU.writeFile(targetPath, '')
+      await KernelSU.writeFile(legacyPath, '')
       logContent.value = 'Log telah dibersihkan.'
       KernelSU.toast('Log berhasil dibersihkan!')
     } catch (e) {

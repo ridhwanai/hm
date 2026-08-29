@@ -1,7 +1,7 @@
 #!/system/bin/sh
 
 #
-# Copyright (C) 2026-2027 Zexshia & wann
+# Copyright (C) 2026-2027 wann
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,17 +21,15 @@ q() {
 }
 
 # Reset properties
-resetprop | awk -F'[][]' '/persist\.sys\.azenith/ {print $2}' | while read -r prop; do
-    resetprop -p --delete "$prop" >/dev/null 2>&1
-done
-
-for prop in persist.sys.rianixia.learning_enabled persist.sys.rianixia.thermalcore-bigdata.path; do
+resetprop | awk -F'[][]' '/persist\.sys\.(wann|azenith)/ {print $2}' | while read -r prop; do
     resetprop -p --delete "$prop" >/dev/null 2>&1
 done
 
 # Terminate running background daemons
 q sys.azenith-service
-q sys.azenith-appmonitoring
+q wann-hibernate.sh
+q wann-fstrim.sh
+q wann-memory.sh
 q azenith-hibernate.sh
 q azenith-fstrim.sh
 q azenith-memory.sh
@@ -42,9 +40,9 @@ for dir in "/data/adb/ap/bin" "/data/adb/ksu/bin"; do
     [ -d "$dir" ] && find "$dir" -name "sys.azenith-*" -exec rm -f {} +
 done
 
-# RN9: Unfreeze all hibernated apps
-HIBLIST=/data/adb/.config/AZenith/eco/hibernate.list
-LEGACY_HIBLIST=/data/adb/.config/AZenith/hibernate/hibernate.list
+# Unfreeze all hibernated apps
+HIBLIST=/data/adb/.config/wann/eco/hibernate.list
+LEGACY_HIBLIST=/data/adb/.config/AZenith/eco/hibernate.list
 for HFILE in "$HIBLIST" "$LEGACY_HIBLIST"; do
     if [ -f "$HFILE" ]; then
         for p in $(sed -e 's/#.*//' -e 's/[[:space:]]//g' "$HFILE" | grep -v '^$'); do
@@ -55,11 +53,14 @@ for HFILE in "$HIBLIST" "$LEGACY_HIBLIST"; do
         done
     fi
 done
-rm -f /dev/.azenith_hibernate.lock
+rm -f /dev/.wann_hibernate.lock /dev/.azenith_hibernate.lock /dev/.wann_fstrim.lock /dev/.azenith_fstrim.lock
 
-# Remove configuration directory
+# Remove configuration directories
 rm -rf \
+    "/data/adb/.config/wann" \
     "/data/adb/.config/AZenith" \
     "/data/AZenith" \
     "/data/data/zx.azenith"
-: > "/data/adb/modules/AZenith/remove"
+
+: > "/data/adb/modules/wann/remove" 2>/dev/null
+: > "/data/adb/modules/AZenith/remove" 2>/dev/null

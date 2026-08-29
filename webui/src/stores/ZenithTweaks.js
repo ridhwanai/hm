@@ -2,8 +2,10 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import * as KernelSU from '@/helpers/KernelSU'
 
-const CONFIG_PATH = '/data/adb/.config/AZenith'
-const MOD_PATH = '/data/adb/modules/AZenith'
+const CONFIG_PATH = '/data/adb/.config/wann'
+const LEGACY_CONFIG_PATH = '/data/adb/.config/AZenith'
+const MOD_PATH = '/data/adb/modules/wann'
+const LEGACY_MOD_PATH = '/data/adb/modules/AZenith'
 
 export const useZenithTweaksStore = defineStore('zenithTweaks', () => {
   // Memory Tuning State
@@ -44,12 +46,17 @@ export const useZenithTweaksStore = defineStore('zenithTweaks', () => {
   // Memory
   async function loadMemoryConfig() {
     try {
-      const [en, sz, sw, al] = await Promise.all([
+      let [en, sz, sw, al] = await Promise.all([
         KernelSU.readFile(`${CONFIG_PATH}/mem/enabled`),
         KernelSU.readFile(`${CONFIG_PATH}/mem/zram_mb`),
         KernelSU.readFile(`${CONFIG_PATH}/mem/swappiness`),
         KernelSU.readFile(`${CONFIG_PATH}/mem/algo`),
       ])
+
+      if (!en) en = await KernelSU.readFile(`${LEGACY_CONFIG_PATH}/mem/enabled`)
+      if (!sz) sz = await KernelSU.readFile(`${LEGACY_CONFIG_PATH}/mem/zram_mb`)
+      if (!sw) sw = await KernelSU.readFile(`${LEGACY_CONFIG_PATH}/mem/swappiness`)
+      if (!al) al = await KernelSU.readFile(`${LEGACY_CONFIG_PATH}/mem/algo`)
 
       memEnabled.value = en.trim() !== '0'
       if (sz.trim()) zramSizeMB.value = parseInt(sz.trim()) || 2048
@@ -69,10 +76,19 @@ export const useZenithTweaksStore = defineStore('zenithTweaks', () => {
         KernelSU.writeFile(`${CONFIG_PATH}/mem/zram_mb`, zramSizeMB.value.toString()),
         KernelSU.writeFile(`${CONFIG_PATH}/mem/swappiness`, swappiness.value.toString()),
         KernelSU.writeFile(`${CONFIG_PATH}/mem/algo`, memAlgo.value),
+        KernelSU.writeFile(`${LEGACY_CONFIG_PATH}/mem/enabled`, memEnabled.value ? '1' : '0'),
+        KernelSU.writeFile(`${LEGACY_CONFIG_PATH}/mem/zram_mb`, zramSizeMB.value.toString()),
+        KernelSU.writeFile(`${LEGACY_CONFIG_PATH}/mem/swappiness`, swappiness.value.toString()),
+        KernelSU.writeFile(`${LEGACY_CONFIG_PATH}/mem/algo`, memAlgo.value),
       ])
 
-      // Run apply-now
-      const { stdout } = await KernelSU.exec(`sh ${MOD_PATH}/azenith-memory.sh apply-now`)
+      // Run apply-now with Wann script fallback
+      const { stdout } = await KernelSU.exec(`
+        [ -f "${MOD_PATH}/wann-memory.sh" ] && sh "${MOD_PATH}/wann-memory.sh" apply-now || \
+        [ -f "${LEGACY_MOD_PATH}/wann-memory.sh" ] && sh "${LEGACY_MOD_PATH}/wann-memory.sh" apply-now || \
+        [ -f "${MOD_PATH}/azenith-memory.sh" ] && sh "${MOD_PATH}/azenith-memory.sh" apply-now || \
+        [ -f "${LEGACY_MOD_PATH}/azenith-memory.sh" ] && sh "${LEGACY_MOD_PATH}/azenith-memory.sh" apply-now
+      `)
       memStatusMsg.value = stdout.trim() || 'Tuning ZRAM & Swappiness berhasil diterapkan!'
       KernelSU.toast('Tuning Memori Berhasil Diterapkan!')
     } catch (e) {
@@ -86,7 +102,7 @@ export const useZenithTweaksStore = defineStore('zenithTweaks', () => {
   // ECO / Hibernation
   async function loadEcoConfig() {
     try {
-      const [en, dl, md, sc, sa, list] = await Promise.all([
+      let [en, dl, md, sc, sa, list] = await Promise.all([
         KernelSU.readFile(`${CONFIG_PATH}/eco/enabled`),
         KernelSU.readFile(`${CONFIG_PATH}/eco/delay`),
         KernelSU.readFile(`${CONFIG_PATH}/eco/mode.default`),
@@ -94,6 +110,17 @@ export const useZenithTweaksStore = defineStore('zenithTweaks', () => {
         KernelSU.readFile(`${CONFIG_PATH}/eco/skip_audio`),
         KernelSU.readFile(`${CONFIG_PATH}/eco/hibernate.list`),
       ])
+
+      if (!en) {
+        [en, dl, md, sc, sa, list] = await Promise.all([
+          KernelSU.readFile(`${LEGACY_CONFIG_PATH}/eco/enabled`),
+          KernelSU.readFile(`${LEGACY_CONFIG_PATH}/eco/delay`),
+          KernelSU.readFile(`${LEGACY_CONFIG_PATH}/eco/mode.default`),
+          KernelSU.readFile(`${LEGACY_CONFIG_PATH}/eco/skip_charging`),
+          KernelSU.readFile(`${LEGACY_CONFIG_PATH}/eco/skip_audio`),
+          KernelSU.readFile(`${LEGACY_CONFIG_PATH}/eco/hibernate.list`),
+        ])
+      }
 
       ecoEnabled.value = en.trim() !== '0'
       if (dl.trim()) ecoDelay.value = parseInt(dl.trim()) || 300
@@ -121,6 +148,12 @@ export const useZenithTweaksStore = defineStore('zenithTweaks', () => {
         KernelSU.writeFile(`${CONFIG_PATH}/eco/skip_charging`, skipCharging.value ? '1' : '0'),
         KernelSU.writeFile(`${CONFIG_PATH}/eco/skip_audio`, skipAudio.value ? '1' : '0'),
         KernelSU.writeFile(`${CONFIG_PATH}/eco/hibernate.list`, rawHibernateList.value),
+        KernelSU.writeFile(`${LEGACY_CONFIG_PATH}/eco/enabled`, ecoEnabled.value ? '1' : '0'),
+        KernelSU.writeFile(`${LEGACY_CONFIG_PATH}/eco/delay`, ecoDelay.value.toString()),
+        KernelSU.writeFile(`${LEGACY_CONFIG_PATH}/eco/mode.default`, ecoModeDefault.value),
+        KernelSU.writeFile(`${LEGACY_CONFIG_PATH}/eco/skip_charging`, skipCharging.value ? '1' : '0'),
+        KernelSU.writeFile(`${LEGACY_CONFIG_PATH}/eco/skip_audio`, skipAudio.value ? '1' : '0'),
+        KernelSU.writeFile(`${LEGACY_CONFIG_PATH}/eco/hibernate.list`, rawHibernateList.value),
       ])
       KernelSU.toast('Pengaturan Hibernasi ECO tersimpan')
     } catch (e) {
@@ -131,10 +164,17 @@ export const useZenithTweaksStore = defineStore('zenithTweaks', () => {
   // FSTRIM
   async function loadFstrimConfig() {
     try {
-      const [en, iv] = await Promise.all([
+      let [en, iv] = await Promise.all([
         KernelSU.readFile(`${CONFIG_PATH}/maint/fstrim_enabled`),
         KernelSU.readFile(`${CONFIG_PATH}/maint/fstrim_interval`),
       ])
+
+      if (!en) {
+        [en, iv] = await Promise.all([
+          KernelSU.readFile(`${LEGACY_CONFIG_PATH}/maint/fstrim_enabled`),
+          KernelSU.readFile(`${LEGACY_CONFIG_PATH}/maint/fstrim_interval`),
+        ])
+      }
 
       fstrimEnabled.value = en.trim() !== '0'
       if (iv.trim()) fstrimInterval.value = parseInt(iv.trim()) || 86400
@@ -148,6 +188,8 @@ export const useZenithTweaksStore = defineStore('zenithTweaks', () => {
       await Promise.all([
         KernelSU.writeFile(`${CONFIG_PATH}/maint/fstrim_enabled`, fstrimEnabled.value ? '1' : '0'),
         KernelSU.writeFile(`${CONFIG_PATH}/maint/fstrim_interval`, fstrimInterval.value.toString()),
+        KernelSU.writeFile(`${LEGACY_CONFIG_PATH}/maint/fstrim_enabled`, fstrimEnabled.value ? '1' : '0'),
+        KernelSU.writeFile(`${LEGACY_CONFIG_PATH}/maint/fstrim_interval`, fstrimInterval.value.toString()),
       ])
     } catch (e) {
       console.warn('Failed to save FSTRIM config', e)
@@ -172,7 +214,7 @@ export const useZenithTweaksStore = defineStore('zenithTweaks', () => {
   // Renderer
   async function loadRendererConfig() {
     try {
-      const { stdout } = await KernelSU.exec('getprop persist.sys.azenithconf.renderer')
+      const { stdout } = await KernelSU.exec('getprop persist.sys.wannconf.renderer || getprop persist.sys.azenithconf.renderer')
       const r = stdout.trim()
       currentRenderer.value = r || 'skiaglthreaded'
     } catch {
@@ -183,8 +225,12 @@ export const useZenithTweaksStore = defineStore('zenithTweaks', () => {
   async function setRenderer(rendererName) {
     currentRenderer.value = rendererName
     try {
-      await KernelSU.exec(`setprop persist.sys.azenithconf.renderer "${rendererName}"`)
-      await KernelSU.exec(`[ -x ${MOD_PATH}/system/bin/sys.azenith-utilityconf ] && ${MOD_PATH}/system/bin/sys.azenith-utilityconf setrender "${rendererName}"`)
+      await KernelSU.exec(`
+        setprop persist.sys.wannconf.renderer "${rendererName}"
+        setprop persist.sys.azenithconf.renderer "${rendererName}"
+        [ -x ${MOD_PATH}/system/bin/sys.azenith-utilityconf ] && ${MOD_PATH}/system/bin/sys.azenith-utilityconf setrender "${rendererName}" || \
+        [ -x ${LEGACY_MOD_PATH}/system/bin/sys.azenith-utilityconf ] && ${LEGACY_MOD_PATH}/system/bin/sys.azenith-utilityconf setrender "${rendererName}"
+      `)
       KernelSU.toast(`Renderer disetel ke: ${rendererName}`)
     } catch (e) {
       KernelSU.toast('Gagal mengatur renderer')

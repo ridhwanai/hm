@@ -2,7 +2,8 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import * as KernelSU from '@/helpers/KernelSU'
 
-const GAMELIST_PATH = '/data/adb/.config/AZenith/gamelist/azenithApplist.json'
+const GAMELIST_PATH = '/data/adb/.config/wann/gamelist/wannApplist.json'
+const LEGACY_GAMELIST_PATH = '/data/adb/.config/AZenith/gamelist/azenithApplist.json'
 
 export const useZenithGamesStore = defineStore('zenithGames', () => {
   const games = ref([])
@@ -15,7 +16,9 @@ export const useZenithGamesStore = defineStore('zenithGames', () => {
     try {
       let content = await KernelSU.readFile(GAMELIST_PATH)
       if (!content || !content.trim().startsWith('{')) {
-        // Fallback default list
+        content = await KernelSU.readFile(LEGACY_GAMELIST_PATH)
+      }
+      if (!content || !content.trim().startsWith('{')) {
         content = '{}'
       }
 
@@ -61,7 +64,9 @@ export const useZenithGamesStore = defineStore('zenithGames', () => {
           renderer: g.renderer || 'default',
         }
       }
-      await KernelSU.writeFile(GAMELIST_PATH, JSON.stringify(obj, null, 2))
+      const dataStr = JSON.stringify(obj, null, 2)
+      await KernelSU.writeFile(GAMELIST_PATH, dataStr)
+      await KernelSU.writeFile(LEGACY_GAMELIST_PATH, dataStr)
     } catch (e) {
       console.error('Failed to save games:', e)
       KernelSU.toast('Gagal menyimpan daftar game')
